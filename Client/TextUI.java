@@ -16,6 +16,7 @@ public class TextUI {
 
         this.worker = new ClientWorker();
         scin = new Scanner(System.in);
+        worker.startRequestWorker();
     }
 
     /**
@@ -48,9 +49,14 @@ public class TextUI {
         System.out.println("Please insert your password: ");
         String password = scin.nextLine();
         System.out.println("loading...");
+        worker.addRequest(username + " " + password);
+        worker.waitMain();
+        worker.getResponses("signIn");
+        
+        
     }
 
-    // Todo: WOrker part
+    // Todo: Worker part
     private void signUp() {
         System.out.println("Please insert your username: ");
         String username = scin.nextLine();
@@ -82,7 +88,7 @@ public class TextUI {
                     "Add Flight",
                     "End Day",
                     "Add new Admin",
-                    
+
             };
         } else {
             options = new String[] {
@@ -128,7 +134,7 @@ public class TextUI {
 
     /**
      * TODO: ADD worker Part
-     *  no sleep
+     * no sleep
      */
     private void makeReservation() {
         System.out.println("Please Insert flight number: ");
@@ -149,12 +155,7 @@ public class TextUI {
      * falta o pedido das reservas anteriores
      */
     private void checkReservations() {
-        worker.lock.lock();
-        try {
-            for(String response : worker.getResponses()) {
-                System.out.println(response);
-            }
-        }finally{worker.lock.unlock();}
+        worker.getResponses("reservations");
     }
 
     /**
@@ -166,7 +167,7 @@ public class TextUI {
         int day = readInt();
     }
 
-     /**
+    /**
      * TODO: ADD Worker Part
      * sleep?
      */
