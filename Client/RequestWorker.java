@@ -24,26 +24,32 @@ public class RequestWorker implements Runnable {
     @Override
     /**
      * TODO: Temos que definir o protocolo, vou so supor coisas para ja
+     * Como fechar o socket sem excecao? E necessario enviar para o outro lad?
      */
     public void run() {
         try {
             while (!socket.isClosed()) {
-                
+
                 List<String> requests = worker.getRequests();
                 worker.waitRequestWorker();
                 for (String request : requests) {
-                    if(request.equals("close")) {closeSocket();}
-
-                    out.writeUTF(request);
-                    worker.handleresponse(in.readUTF());
-                    worker.deleteRequest(request);
+                    if (request.equals("close")) {
+                        closeSocket();
+                        break;
+                    } else {
+                        out.writeUTF(request);
+                        worker.handleresponse(in.readUTF());
+                        worker.deleteRequest(request);
+                    }
                 }
             }
-        } catch (IOException  e) {
+        } catch (IOException e) {
             e.printStackTrace(); // TODO: e so pra testar
         }
     }
 
+
+    //Closes socket
     private void closeSocket() throws IOException {
         in.close();
         out.close();

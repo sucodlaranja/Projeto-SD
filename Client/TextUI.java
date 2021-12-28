@@ -28,10 +28,14 @@ public class TextUI {
         this.authenticate();
         this.mainMenu();
         System.out.println("Até breve...");
+        worker.addRequest("close");
     }
 
-    // Todo: WOrker part
+    // Estados da UI
+
+    /// authenticate Menu
     private void authenticate() {
+        while(!worker.isLoggedIn()) {
         Menu menu = new Menu(new String[] {
                 "Sign in",
                 "Sign up"
@@ -40,43 +44,11 @@ public class TextUI {
         menu.setHandler(2, () -> signUp());
 
         menu.runOnce();
+        }
     }
 
-    // Todo: WOrker part
-    private void signIn() {
-        System.out.println("Please insert your username: ");
-        String username = scin.nextLine();
-        System.out.println("Please insert your password: ");
-        String password = scin.nextLine();
-        System.out.println("loading...");
-        worker.addRequest(username + " " + password);
-        worker.waitMain();
-        worker.getResponses("signIn");
-        
-        
-    }
 
-    // Todo: Worker part
-    private void signUp() {
-        System.out.println("Please insert your username: ");
-        String username = scin.nextLine();
-        System.out.println("Please insert your password: ");
-        String password = scin.nextLine();
-        System.out.println("loading...");
-    }
-
-    // Métodos auxiliares - Estados da UI
-
-    /**
-     * Estado - Menu Principal
-     *
-     * Transições para:
-     * Operações sobre Alunos
-     * Operações sobre Turmas
-     * Adicionar Aluno a Turma
-     * Remover Aluno de Turma
-     * Listar Alunos de Turma
-     */
+    ///Main menu
     private void mainMenu() {
         String[] options;
         if (worker.isAdmin()) {
@@ -101,7 +73,6 @@ public class TextUI {
         }
         Menu menu = new Menu(options);
 
-        // mais pré-condições?
 
         // Registar os handlers das transições
         menu.setHandler(1, () -> verifyFlights());
@@ -118,8 +89,36 @@ public class TextUI {
         menu.run();
     }
 
+    //Handlers
+
+
+        // TODO: Decidir protocolo
+        private void signIn() {
+            System.out.println("Please insert your username: ");
+            String username = scin.nextLine();
+            System.out.println("Please insert your password: ");
+            String password = scin.nextLine();
+            System.out.println("loading...");
+            worker.addRequest(username + " " + password);
+            worker.waitMain();
+            System.out.println(worker.getResponses("signIn"));
+            
+        }
+    
+        // TODO: Decidir Protocolo
+        private void signUp() {
+            System.out.println("Please insert your username: ");
+            String username = scin.nextLine();
+            System.out.println("Please insert your password: ");
+            String password = scin.nextLine();
+            System.out.println("loading...");
+            worker.addRequest(username + " " + password);
+            worker.waitMain();
+        }
+
+
     /**
-     * TODO adicionar worker part
+     * TODO Decidir protocolo
      */
     private void verifyFlights() {
 
@@ -129,46 +128,59 @@ public class TextUI {
         String to = scin.nextLine();
         System.out.println("Depart: ");
         int depart = readInt();
+        worker.addRequest("verif: " + from + " " + to + " " + depart);
 
     }
 
     /**
-     * TODO: ADD worker Part
+     * TODO: Decidir protocolo e casos de nao ser possivel
      * no sleep
      */
     private void makeReservation() {
         System.out.println("Please Insert flight number: ");
         int flight = readInt();
+        worker.addRequest("AddR:" + flight);
+
     }
 
     /**
-     * TODO: ADD Worker Part
+     * TODO: Decidir protocolo
      * no sleep
      */
     private void cancelReservation() {
         System.out.println("Please Insert reservation number: ");
         int reservation = readInt();
+        worker.addRequest("RemR:" + reservation);
     }
 
     /**
-     * TODO: ADD Worker Part
-     * falta o pedido das reservas anteriores
+     * TODO: Decidir protocolo
+     * 
      */
     private void checkReservations() {
-        worker.getResponses("reservations");
+        System.out.println(worker.getResponses("reservations"));
+        System.out.println("Do you want to see previous reservations?[y/n]");
+        String input = scin.nextLine();
+        if(input.equals("y")) {
+            worker.addRequest("check");
+            worker.waitMain();
+            System.out.println(worker.getResponses("latest"));                  //TODO: not sure como fazer isto
+        }
+        
     }
 
     /**
-     * TODO: ADD Worker Part
+     * TODO: Decidir protocolo
      * sleep?
      */
     private void endDay() {
         System.out.println("Please insert day: ");
         int day = readInt();
+        worker.addRequest("End:" + day);
     }
 
     /**
-     * TODO: ADD Worker Part
+     * TODO: Decidir protocolo
      * sleep?
      */
     private void addFlight() {
@@ -178,10 +190,11 @@ public class TextUI {
         String to = scin.nextLine();
         System.out.println("Please insert flight capacity: ");
         int capacity = readInt();
+        worker.addRequest("AddF " + from + " " + to + " " + Integer.toString(capacity));
     }
 
     /**
-     * TODO: ADD WORKER PART
+     * TODO: Decidir protocolo
      * no sleep
      */
     private void addAdmin() {
@@ -189,7 +202,12 @@ public class TextUI {
         String username = scin.nextLine();
         System.out.println("Insert password: ");
         String password = scin.nextLine();
+        worker.addRequest("aDDA " + username + " " + password);
     }
+
+
+    //auxiliar methods 
+
 
     private int readInt() {
         int r;
