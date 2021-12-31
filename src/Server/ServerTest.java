@@ -1,3 +1,5 @@
+package Server;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,7 +12,7 @@ public class ServerTest {
         try {
             ServerSocket serverSocket = new ServerSocket(8081);
 
-            while (true) {
+            while (!serverSocket.isClosed()) {
                 Socket socket = serverSocket.accept();
                 System.out.println("COnnection Started");
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());

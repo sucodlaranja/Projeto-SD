@@ -1,15 +1,20 @@
+package Client;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+
+// TODO: DEFINIR PROTOCOLO
+
 /**
  * ClientController
  */
 public class ClientWorker {
-    private List<String> requests;
-    private List<String> responses;
-    private boolean admin;
+    private final List<String> requests;
+    private final List<String> responses;
+    private final boolean admin;
     private boolean loggedIn;
 
     public ReentrantLock lock;
@@ -47,7 +52,6 @@ public class ClientWorker {
 
     /**
      * TODO ACORDAR O MAIN NAS VEZES EM QUE ADORMECE
-     * TODO: DESENVOLVER ISTO APOS DEFINIR PROTOCOLO
      * 
      * @param response
      * @return
@@ -92,11 +96,7 @@ public class ClientWorker {
     public List<String> getRequests() {
         lock.lock();
         try {
-            List<String> cloned = new ArrayList<String>();
-            for (String request : requests) {
-                cloned.add(request);
-            }
-            return cloned;
+            return new ArrayList<String>(requests);
         } finally {
             lock.unlock();
         }
@@ -124,7 +124,7 @@ public class ClientWorker {
     public String getResponses(String wich) {
         lock.lock();
         try {
-            String response = null;
+            String response;
             switch (wich) {
                 case "signIn":
                     response = "signed in!";

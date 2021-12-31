@@ -1,3 +1,5 @@
+package Client;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,6 +12,8 @@ public class RequestWorker implements Runnable {
     private DataInputStream in;
     private DataOutputStream out;
 
+    // TODO: Definir o protocolo
+
     public RequestWorker(ClientWorker worker) {
         try {
             this.worker = worker;
@@ -21,11 +25,11 @@ public class RequestWorker implements Runnable {
         }
     }
 
-    @Override
+
     /**
-     * TODO: Temos que definir o protocolo, vou so supor coisas para ja
      * Como fechar o socket sem excecao? E necessario enviar para o outro lad?
      */
+    @Override
     public void run() {
         try {
             while (!socket.isClosed()) {

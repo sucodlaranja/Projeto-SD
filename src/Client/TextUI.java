@@ -1,11 +1,13 @@
+package Client;
+
 import java.util.Scanner;
 
 public class TextUI {
     // O model tem a 'lógica de negócio'.
-    private ClientWorker worker;
+    private final ClientWorker clientWorker;
 
     // Scanner para leitura
-    private Scanner scin;
+    private final Scanner scin;
 
     /**
      * Construtor.
@@ -13,10 +15,8 @@ public class TextUI {
      * Cria os menus e a camada de negócio.
      */
     public TextUI() {
-
-        this.worker = new ClientWorker();
-        scin = new Scanner(System.in);
-        worker.startRequestWorker();
+        this.scin = new Scanner(System.in);
+        this.clientWorker = new ClientWorker();
     }
 
     /**
@@ -24,24 +24,27 @@ public class TextUI {
      * seleccionada.
      */
     public void run() {
+        // Start worker - manage client interactions with the server using RequestWorker.
+        this.clientWorker.startRequestWorker();
+
         System.out.println("Welcome to Flight Choicer!");
         this.authenticate();
         this.mainMenu();
         System.out.println("Até breve...");
-        worker.addRequest("close");
+        clientWorker.addRequest("close");
     }
 
     // Estados da UI
 
     /// authenticate Menu
     private void authenticate() {
-        while(!worker.isLoggedIn()) {
+        while(!clientWorker.isLoggedIn()) {
         Menu menu = new Menu(new String[] {
                 "Sign in",
                 "Sign up"
         });
-        menu.setHandler(1, () -> signIn());
-        menu.setHandler(2, () -> signUp());
+        menu.setHandler(1, this::signIn);
+        menu.setHandler(2, this::signUp);
 
         menu.runOnce();
         }
@@ -51,7 +54,7 @@ public class TextUI {
     ///Main menu
     private void mainMenu() {
         String[] options;
-        if (worker.isAdmin()) {
+        if (clientWorker.isAdmin()) {
             options = new String[] {
                     "Check available flights",
                     "Make a reservation",
@@ -62,7 +65,8 @@ public class TextUI {
                     "Add new Admin",
 
             };
-        } else {
+        }
+        else {
             options = new String[] {
                     "Check available flights",
                     "Make a reservation",
@@ -71,18 +75,18 @@ public class TextUI {
 
             };
         }
+
         Menu menu = new Menu(options);
 
-
         // Registar os handlers das transições
-        menu.setHandler(1, () -> verifyFlights());
-        menu.setHandler(2, () -> makeReservation());
-        menu.setHandler(3, () -> cancelReservation());
-        menu.setHandler(4, () -> checkReservations());
-        if (worker.isAdmin()) {
-            menu.setHandler(5, () -> addFlight());
-            menu.setHandler(6, () -> endDay());
-            menu.setHandler(7, () -> addAdmin());
+        menu.setHandler(1, this::verifyFlights);
+        menu.setHandler(2, this::makeReservation);
+        menu.setHandler(3, this::cancelReservation);
+        menu.setHandler(4, this::checkReservations);
+        if (clientWorker.isAdmin()) {
+            menu.setHandler(5, this::addFlight);
+            menu.setHandler(6, this::endDay);
+            menu.setHandler(7, this::addAdmin);
         }
 
         // Executar o menu
@@ -91,34 +95,29 @@ public class TextUI {
 
     //Handlers
 
+    // TODO: Decidir protocolo!
 
-        // TODO: Decidir protocolo
-        private void signIn() {
-            System.out.println("Please insert your username: ");
-            String username = scin.nextLine();
-            System.out.println("Please insert your password: ");
-            String password = scin.nextLine();
-            System.out.println("loading...");
-            worker.addRequest(username + " " + password);
-            worker.waitMain();
-            System.out.println(worker.getResponses("signIn"));
-            
-        }
-    
-        // TODO: Decidir Protocolo
-        private void signUp() {
-            System.out.println("Please insert your username: ");
-            String username = scin.nextLine();
-            System.out.println("Please insert your password: ");
-            String password = scin.nextLine();
-            System.out.println("loading...");
-            worker.addRequest(username + " " + password);
-            worker.waitMain();
-        }
+    private void getUserNameAndPw() {
+        System.out.println("Please insert your username: ");
+        String username = scin.nextLine();
+        System.out.println("Please insert your password: ");
+        String password = scin.nextLine();
+        System.out.println("loading...");
+        clientWorker.addRequest(username + " " + password);
+        clientWorker.waitMain();
+    }
 
+    private void signIn() {
+        getUserNameAndPw();
+        System.out.println(clientWorker.getResponses("signIn"));
+    }
+
+    private void signUp() {
+        getUserNameAndPw();
+    }
 
     /**
-     * TODO Decidir protocolo
+     *
      */
     private void verifyFlights() {
 
@@ -128,59 +127,55 @@ public class TextUI {
         String to = scin.nextLine();
         System.out.println("Depart: ");
         int depart = readInt();
-        worker.addRequest("verif: " + from + " " + to + " " + depart);
+        clientWorker.addRequest("verif: " + from + " " + to + " " + depart);
 
     }
 
     /**
-     * TODO: Decidir protocolo e casos de nao ser possivel
+     * TODO: Casos de nao ser possivel
      * no sleep
      */
     private void makeReservation() {
         System.out.println("Please Insert flight number: ");
         int flight = readInt();
-        worker.addRequest("AddR:" + flight);
+        clientWorker.addRequest("AddR:" + flight);
 
     }
 
     /**
-     * TODO: Decidir protocolo
-     * no sleep
+     * sleep
      */
     private void cancelReservation() {
         System.out.println("Please Insert reservation number: ");
         int reservation = readInt();
-        worker.addRequest("RemR:" + reservation);
+        clientWorker.addRequest("RemR:" + reservation);
     }
 
     /**
-     * TODO: Decidir protocolo
-     * 
+     *
      */
     private void checkReservations() {
-        System.out.println(worker.getResponses("reservations"));
+        System.out.println(clientWorker.getResponses("reservations"));
         System.out.println("Do you want to see previous reservations?[y/n]");
         String input = scin.nextLine();
         if(input.equals("y")) {
-            worker.addRequest("check");
-            worker.waitMain();
-            System.out.println(worker.getResponses("latest"));                  //TODO: not sure como fazer isto
+            clientWorker.addRequest("check");
+            clientWorker.waitMain();
+            System.out.println(clientWorker.getResponses("latest"));    //TODO: not sure como fazer isto
         }
         
     }
 
     /**
-     * TODO: Decidir protocolo
      * sleep?
      */
     private void endDay() {
         System.out.println("Please insert day: ");
         int day = readInt();
-        worker.addRequest("End:" + day);
+        clientWorker.addRequest("End:" + day);
     }
 
     /**
-     * TODO: Decidir protocolo
      * sleep?
      */
     private void addFlight() {
@@ -190,11 +185,10 @@ public class TextUI {
         String to = scin.nextLine();
         System.out.println("Please insert flight capacity: ");
         int capacity = readInt();
-        worker.addRequest("AddF " + from + " " + to + " " + Integer.toString(capacity));
+        clientWorker.addRequest("AddF " + from + " " + to + " " + capacity);
     }
 
     /**
-     * TODO: Decidir protocolo
      * no sleep
      */
     private void addAdmin() {
@@ -202,12 +196,11 @@ public class TextUI {
         String username = scin.nextLine();
         System.out.println("Insert password: ");
         String password = scin.nextLine();
-        worker.addRequest("aDDA " + username + " " + password);
+        clientWorker.addRequest("aDDA " + username + " " + password);
     }
 
 
     //auxiliar methods 
-
 
     private int readInt() {
         int r;
