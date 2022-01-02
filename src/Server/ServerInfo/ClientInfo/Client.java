@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /// This class stores the information of a client.
-public class Client implements Serializable {
+class Client implements Serializable {
 
     /// The client's username.
     private final String username;

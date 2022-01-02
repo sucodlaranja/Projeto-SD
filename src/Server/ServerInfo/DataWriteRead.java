@@ -1,9 +1,10 @@
 package Server.ServerInfo;
 
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
-///This class allows reading and writing structures on a file,
+///This class allows reading and writing structures on a file.
 public class DataWriteRead {
 
     ///Reads a \ref Hashmap from a given file.
@@ -61,6 +62,37 @@ public class DataWriteRead {
         try {
             ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
             os.writeObject(set);
+            os.flush();
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    ///Reads information from a given file.
+    public static LocalDateTime getInstanceOtherInformation(String filename) {
+
+        LocalDateTime localDateTime = null;
+        try {
+            ObjectInputStream is =
+                    new ObjectInputStream(new FileInputStream(filename));
+            localDateTime = ((LocalDateTime) is.readObject());
+        }
+        catch (IOException ex) {
+            System.out.println("O sistema nao conseguiu carregar o ficheiro: " + filename + ".");
+        }
+        catch (ClassNotFoundException ignored){ }
+
+        if (localDateTime == null) return LocalDateTime.now();
+        else return localDateTime;
+    }
+
+    /// Writes information on a given file.
+    public static void saveInstanceOtherInformation(Map map,LocalDateTime localDateTime,String filename) {
+        try {
+            ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
+            os.writeObject(localDateTime);
+            os.writeObject(map);
             os.flush();
             os.close();
         } catch (IOException e) {

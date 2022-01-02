@@ -2,19 +2,18 @@ package Server.ServerInfo.ClientInfo;
 
 import Server.ServerInfo.DataWriteRead;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-///This class will manage all the clients in the system.
-public class ClientFacade {
+/// This class will manage all the clients in the system.
+public class ClientFacade implements IClientFacade {
 
     /// This Map contains all the clients of the system.
-    Map<String,Client> clients;
+    private final Map<String,Client> clients;
 
     /// Lock that will allow multiple threads to access this class.
-    ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     /// Constructor that will read a file containing /ref Clients.
     public ClientFacade(){
