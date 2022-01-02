@@ -2,7 +2,7 @@ package Client;
 
 public class Main {
     public static void main(String[] args) {
-        TextUI teste = new TextUI();
+        Controller teste = new Controller();
         teste.run();
     }
 }

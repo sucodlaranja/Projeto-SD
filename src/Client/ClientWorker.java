@@ -1,20 +1,20 @@
 package Client;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-
 // TODO: DEFINIR PROTOCOLO
 
-/**
- * ClientController
- */
 public class ClientWorker {
     private final List<String> requests;
     private final List<String> responses;
-    private final boolean admin;
+    private boolean admin;
     private boolean loggedIn;
 
     public ReentrantLock lock;
@@ -45,13 +45,14 @@ public class ClientWorker {
         requests = new ArrayList<>();
         responses = new ArrayList<>();
         admin = false;
+        loggedIn = false;
         lock = new ReentrantLock();
         sleepmain = lock.newCondition();
         sleepRequest = lock.newCondition();
     }
 
     /**
-     * TODO ACORDAR O MAIN NAS VEZES EM QUE ADORMECE
+     * 
      * 
      * @param response
      * @return
@@ -59,18 +60,34 @@ public class ClientWorker {
     public void handleresponse(String response) {
         lock.lock();
         try {
-            loggedIn = true;
-            responses.add(response);
-            sleepmain.signal();
+
+            String[] spliter = response.split("--");
+            responses.add(spliter[1]);
+            switch (spliter[0]) {
+                case "-1":
+                    sleepmain.signal();
+                    break;
+                case "1":
+                    if (!loggedIn)
+                        loggedIn = true;
+                    sleepmain.signal();
+                    break;
+                case "2":
+                    this.loggedIn = true;
+                    this.admin = true;
+                    sleepmain.signal();
+                    break;
+                default:
+                    break;
+            }
+
         } finally {
             lock.unlock();
         }
 
     }
 
-
-    //Information handlers
-
+    // Information handlers
 
     /**
      * Adds one request from the client to a list so that the requestWorker can ask
@@ -81,7 +98,7 @@ public class ClientWorker {
     public void addRequest(String request) {
         lock.lock();
         try {
-            System.out.println("esta a entrar aqui pelo menos");
+           
             requests.add(request);
             sleepRequest.signal();
         } finally {
@@ -104,7 +121,8 @@ public class ClientWorker {
 
     /**
      * Deletes one request from request list, that is already answered
-     * @param request request to be removed 
+     * 
+     * @param request request to be removed
      */
     public void deleteRequest(String request) {
         lock.lock();
@@ -115,25 +133,37 @@ public class ClientWorker {
         }
     }
 
-
     /**
      * TODO: NOT SURE QUE SEJA NECESSARIO, DEPENDE DO PROTOCOLO
+     * 
      * @param wich
      * @return
      */
-    public String getResponses(String wich) {
+    public String getResponses() {
         lock.lock();
         try {
-            String response;
-            switch (wich) {
-                case "signIn":
-                    response = "signed in!";
-                case "reservations":
-                    response = "reservations bro!";
-                default:
-                    response = "No response";
+            StringBuilder response = new StringBuilder();
+            if (responses.isEmpty()) {
+                response.append("No reservations made");
+            } else {
+                for (String r : responses) {
+                    response.append(r + "\n");
+                    responses.remove(r);
+                }
             }
-            return response;
+
+            return response.toString();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // TODO: not sure que isto funciona
+    public String getResponse() {
+        lock.lock();
+        try {
+            return responses.remove(responses.size() - 1);
+
         } finally {
             lock.unlock();
         }
@@ -157,7 +187,7 @@ public class ClientWorker {
         try {
             while (size == responses.size()) {
                 try {
-                    System.out.println("Main thread is sleeping");
+                  
                     sleepmain.await();
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
@@ -174,16 +204,130 @@ public class ClientWorker {
         try {
             while (requests.isEmpty()) {
                 try {
-                    System.out.println("request Worker sleeping...");
+                    
                     sleepRequest.await();
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
+         
         } finally {
             lock.unlock();
         }
+    }
+
+    public class RequestWorker implements Runnable {
+        ClientWorker worker;
+        private Socket socket;
+        private DataInputStream in;
+        private DataOutputStream out;
+
+        // TODO: Definir o protocolo
+
+        public RequestWorker(ClientWorker worker) {
+            try {
+                this.worker = worker;
+                this.socket = new Socket("localhost", 8081);
+                out = new DataOutputStream(socket.getOutputStream());
+                in = new DataInputStream(socket.getInputStream());
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO: e so pra testar
+            }
+        }
+
+        /**
+         * Como fechar o socket sem excecao? E necessario enviar para o outro lad?
+         */
+        @Override
+        public void run() {
+            try {
+                while (!socket.isClosed()) {
+
+                    List<String> requests = worker.getRequests();
+                    worker.waitRequestWorker();
+                    for (String request : requests) {
+                        serializeandSend(request);
+                        worker.handleresponse(in.readUTF());
+                        worker.deleteRequest(request);
+
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO: e so pra testar
+            }
+        }
+
+        // Closes socket
+        private void closeSocket() {
+            try {
+                in.close();
+                out.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace(); // TODO: e so pra testar
+            }
+        }
+
+        private void serializeandSend(String str) throws IOException {
+            String[] spliter = str.split(" ");
+            
+            switch (spliter[0]) {
+                case "close":
+                    closeSocket();
+                    break;
+                case "signIn":
+                    out.writeInt(0);
+                    out.writeUTF(spliter[1]); // Username
+                    out.writeUTF(spliter[2]); // Password
+                    break;
+                case "signUp":
+                    out.writeInt(1);
+                    out.writeUTF(spliter[1]); // Username
+                    out.writeUTF(spliter[2]); // Password
+                    break;
+                case "verif":
+                    out.writeInt(2);
+                    out.writeUTF(spliter[1]); // from
+                    out.writeUTF(spliter[2]); // to
+                    out.writeUTF(spliter[3]); // depart
+                    break;
+                case "AddR":
+                    out.writeInt(3);
+                    out.writeUTF(spliter[1]);// flight number
+                    out.writeUTF(spliter[2]);// day
+                    break;
+                case "RemR":
+                    out.writeInt(4);
+                    out.writeUTF(spliter[1]); // Reservation number
+                    break;
+                case "check":
+                    out.writeInt(5); // Checks all reservations
+                    break;
+                case "End":
+                    out.writeInt(6);
+                    out.writeUTF(spliter[1]); // day
+                    break;
+                case "AddF ":
+                    out.writeInt(7);
+                    out.writeUTF(spliter[1]); // From
+                    out.writeUTF(spliter[2]); // to
+                    out.writeUTF(spliter[3]); // Capacity
+                    break;
+                case "aDDA":
+                    out.writeInt(8);
+                    out.writeUTF(spliter[1]); // username
+                    out.writeUTF(spliter[2]); // password
+                default:
+                    break;
+            }
+            if (!spliter[0].equals("close")) {
+    
+                out.flush();
+            }
+
+        }
+
     }
 
 }

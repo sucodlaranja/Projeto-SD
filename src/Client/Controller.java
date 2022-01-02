@@ -1,21 +1,19 @@
 package Client;
 
-import java.util.Scanner;
 
-public class TextUI {
+
+public class Controller {
     // O model tem a 'lógica de negócio'.
     private final ClientWorker clientWorker;
 
-    // Scanner para leitura
-    private final Scanner scin;
+    
 
     /**
      * Construtor.
      *
      * Cria os menus e a camada de negócio.
      */
-    public TextUI() {
-        this.scin = new Scanner(System.in);
+    public Controller() {
         this.clientWorker = new ClientWorker();
     }
 
@@ -27,10 +25,10 @@ public class TextUI {
         // Start worker - manage client interactions with the server using RequestWorker.
         this.clientWorker.startRequestWorker();
 
-        System.out.println("Welcome to Flight Choicer!");
+        ReaderWriter.printString("Welcome to Flight Choicer!");
         this.authenticate();
         this.mainMenu();
-        System.out.println("Até breve...");
+        ReaderWriter.printString("Até breve...");
         clientWorker.addRequest("close");
     }
 
@@ -97,23 +95,26 @@ public class TextUI {
 
     // TODO: Decidir protocolo!
 
-    private void getUserNameAndPw() {
-        System.out.println("Please insert your username: ");
-        String username = scin.nextLine();
-        System.out.println("Please insert your password: ");
-        String password = scin.nextLine();
-        System.out.println("loading...");
-        clientWorker.addRequest(username + " " + password);
-        clientWorker.waitMain();
-    }
-
     private void signIn() {
-        getUserNameAndPw();
-        System.out.println(clientWorker.getResponses("signIn"));
+        String username = ReaderWriter.getString("Please insert your username: ");
+        String password = ReaderWriter.getString("Please insert your password");
+
+        ReaderWriter.printString("loading...");
+        clientWorker.addRequest("signIn " + username + " " + password);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        ReaderWriter.pressEnterToContinue();
     }
 
     private void signUp() {
-        getUserNameAndPw();
+        String username = ReaderWriter.getString("Please insert your username: ");
+        String password = ReaderWriter.getString("Please insert your password");
+
+        ReaderWriter.printString("loading...");
+        clientWorker.addRequest("signUp " + username + " " + password);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        ReaderWriter.pressEnterToContinue();
     }
 
     /**
@@ -121,14 +122,15 @@ public class TextUI {
      */
     private void verifyFlights() {
 
-        System.out.println("From: ");
-        String from = scin.nextLine();
-        System.out.println("To: ");
-        String to = scin.nextLine();
-        System.out.println("Depart: ");
-        int depart = readInt();
-        clientWorker.addRequest("verif: " + from + " " + to + " " + depart);
-
+       
+        String from = ReaderWriter.getString("From: ");
+        String to = ReaderWriter.getString("To: ");
+        
+        int depart = ReaderWriter.getInt("Depart: ");
+        clientWorker.addRequest("verif " + from + " " + to + " " + depart);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        ReaderWriter.pressEnterToContinue();
     }
 
     /**
@@ -136,32 +138,33 @@ public class TextUI {
      * no sleep
      */
     private void makeReservation() {
-        System.out.println("Please Insert flight number: ");
-        int flight = readInt();
-        clientWorker.addRequest("AddR:" + flight);
+        int flight = ReaderWriter.getInt("Please Insert flight number: ");
+        int day = ReaderWriter.getInt("Please Insert day of flight: ");
+        clientWorker.addRequest("AddR" + flight + " " + day);
 
     }
 
     /**
-     * sleep
+     * no sleep
      */
     private void cancelReservation() {
-        System.out.println("Please Insert reservation number: ");
-        int reservation = readInt();
+        int reservation = ReaderWriter.getInt("Please Insert reservation number: ");
         clientWorker.addRequest("RemR:" + reservation);
+        
+        
     }
 
     /**
      *
      */
     private void checkReservations() {
-        System.out.println(clientWorker.getResponses("reservations"));
-        System.out.println("Do you want to see previous reservations?[y/n]");
-        String input = scin.nextLine();
+        ReaderWriter.printString(clientWorker.getResponses());
+        String input = ReaderWriter.getString("Do you want to see previous reservations?[y/n]");
         if(input.equals("y")) {
             clientWorker.addRequest("check");
             clientWorker.waitMain();
-            System.out.println(clientWorker.getResponses("latest"));    //TODO: not sure como fazer isto
+            ReaderWriter.printString(clientWorker.getResponse());
+            ReaderWriter.pressEnterToContinue();
         }
         
     }
@@ -170,21 +173,22 @@ public class TextUI {
      * sleep?
      */
     private void endDay() {
-        System.out.println("Please insert day: ");
-        int day = readInt();
-        clientWorker.addRequest("End:" + day);
+        int day = ReaderWriter.getInt("Please insert day: ");
+        clientWorker.addRequest("End " + day);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        ReaderWriter.pressEnterToContinue();
     }
 
     /**
      * sleep?
      */
     private void addFlight() {
-        System.out.println("Please insert From: ");
-        String from = scin.nextLine();
-        System.out.println("Please insert To: ");
-        String to = scin.nextLine();
-        System.out.println("Please insert flight capacity: ");
-        int capacity = readInt();
+        String from = ReaderWriter.getString("Please insert From: ");
+        String to   = ReaderWriter.getString("Please insert To: ");
+        
+        int capacity = ReaderWriter.getInt("Please insert flight capacity: ");
+        
         clientWorker.addRequest("AddF " + from + " " + to + " " + capacity);
     }
 
@@ -192,25 +196,14 @@ public class TextUI {
      * no sleep
      */
     private void addAdmin() {
-        System.out.println("Please insert username: ");
-        String username = scin.nextLine();
-        System.out.println("Insert password: ");
-        String password = scin.nextLine();
+        
+        String username = ReaderWriter.getString("Please insert username: ");
+        String password = ReaderWriter.getString("Please insert password: ");
         clientWorker.addRequest("aDDA " + username + " " + password);
     }
 
 
-    //auxiliar methods 
 
-    private int readInt() {
-        int r;
-        try {
-            r = scin.nextInt();
-        } catch (Exception e) {
-            System.out.println("Please insert a number: ");
-            scin.nextLine();
-            r = readInt();
-        }
-        return r;
-    }
+
+    
 }

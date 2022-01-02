@@ -21,14 +21,14 @@ public class Menu {
 
     // Varíável de classe para suportar leitura
 
-    private static final Scanner is = new Scanner(System.in);
+    private static Scanner is = new Scanner(System.in);
 
     // Variáveis de instância
 
-    private final String titulo;                  // Titulo do menu (opcional)
-    private final List<String> opcoes;            // Lista de opções
-    private final List<PreCondition> disponivel;  // Lista de pré-condições
-    private final List<Handler> handlers;         // Lista de handlers
+    private  String titulo;                  // Titulo do menu (opcional)
+    private  List<String> opcoes;            // Lista de opções
+    private  List<PreCondition> disponivel;  // Lista de pré-condições
+    private  List<Handler> handlers;         // Lista de handlers
 
     // Construtor
 
