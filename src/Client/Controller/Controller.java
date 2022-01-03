@@ -1,6 +1,8 @@
-package Client;
+package Client.Controller;
 
-
+import Client.ClientWorker;
+import Client.View.Menu;
+import Client.View.ReaderWriter;
 
 public class Controller {
     // O model tem a 'lógica de negócio'.
@@ -22,9 +24,6 @@ public class Controller {
      * seleccionada.
      */
     public void run() {
-        // Start worker - manage client interactions with the server using RequestWorker.
-        this.clientWorker.startRequestWorker();
-
         ReaderWriter.printString("Welcome to Flight Choicer!");
         this.authenticate();
         this.mainMenu();
@@ -43,9 +42,9 @@ public class Controller {
         });
         menu.setHandler(1, this::signIn);
         menu.setHandler(2, this::signUp);
-
         menu.runOnce();
         }
+        ReaderWriter.pressEnterToContinue();
     }
 
 
@@ -93,32 +92,41 @@ public class Controller {
 
     //Handlers
 
-    // TODO: Decidir protocolo!
+    /**
+     * handles signIn operation and starts RequestWorker so it can communicate with the server
+     */
 
     private void signIn() {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password");
 
+        
+        
+        clientWorker.addRequest("signIn--" + username + "--" + password);
+
+        this.clientWorker.startRequestWorker(); ///Starts worker
         ReaderWriter.printString("loading...");
-        clientWorker.addRequest("signIn " + username + " " + password);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
-        ReaderWriter.pressEnterToContinue();
-    }
-
-    private void signUp() {
-        String username = ReaderWriter.getString("Please insert your username: ");
-        String password = ReaderWriter.getString("Please insert your password");
-
-        ReaderWriter.printString("loading...");
-        clientWorker.addRequest("signUp " + username + " " + password);
-        clientWorker.waitMain();
-        ReaderWriter.printString(clientWorker.getResponse());
-        ReaderWriter.pressEnterToContinue();
+        
     }
 
     /**
-     *
+     * handles signUp operation and starts RequestWorker so it can communicate with the server
+     */
+    private void signUp() {
+        String username = ReaderWriter.getString("Please insert your username: ");
+        String password = ReaderWriter.getString("Please insert your password");
+        this.clientWorker.startRequestWorker(); //<- Start worker - manage client interactions with the server using RequestWorker.
+        ReaderWriter.printString("loading...");
+        clientWorker.addRequest("signUp--" + username + "--" + password);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        
+    }
+
+    /**
+     *  Request all available flights from To in specific day
      */
     private void verifyFlights() {
 
@@ -127,35 +135,45 @@ public class Controller {
         String to = ReaderWriter.getString("To: ");
         
         int depart = ReaderWriter.getInt("Depart: ");
-        clientWorker.addRequest("verif " + from + " " + to + " " + depart);
+        clientWorker.addRequest("verif--" + from + "--" + to + "--" + depart);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();
     }
 
     /**
-     * TODO: Casos de nao ser possivel
-     * no sleep
+     * Requests a reservation
      */
     private void makeReservation() {
-        int flight = ReaderWriter.getInt("Please Insert flight number: ");
-        int day = ReaderWriter.getInt("Please Insert day of flight: ");
-        clientWorker.addRequest("AddR" + flight + " " + day);
+        StringBuilder request = new StringBuilder();
+        String date1 = "";
+        String date2 = "";
+        String flight = "";
+        while(true) {
+         flight = ReaderWriter.getString("Please Insert Place/stop: ");
+         if(flight.equals("stop")) {break;}
+         request.append(flight + ";");
+        }
+        date1 = ReaderWriter.getDate("Please Insert First date[year(xxxx)-month(xx)-day(xx)]");
+        date2 = ReaderWriter.getDate("Please Insert Second date[year(xxxx)-month(xx)-day(xx)]");
+       
+        clientWorker.addRequest("AddR--" + flight + "--" + date1 + "--" + date2);
 
     }
 
     /**
-     * no sleep
+     * Cancels a reservation
      */
     private void cancelReservation() {
         int reservation = ReaderWriter.getInt("Please Insert reservation number: ");
-        clientWorker.addRequest("RemR:" + reservation);
+        clientWorker.addRequest("RemR--" + reservation);
         
         
     }
 
     /**
-     *
+     *  verify all requested reservations that the user didn't saw before,
+     *  Has the option for the user to request all previous reservations to the server.
      */
     private void checkReservations() {
         ReaderWriter.printString(clientWorker.getResponses());
@@ -170,18 +188,18 @@ public class Controller {
     }
 
     /**
-     * sleep?
+     * ends a day
      */
     private void endDay() {
         int day = ReaderWriter.getInt("Please insert day: ");
-        clientWorker.addRequest("End " + day);
+        clientWorker.addRequest("End--" + day);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();
     }
 
     /**
-     * sleep?
+     * adds one flight to the server
      */
     private void addFlight() {
         String from = ReaderWriter.getString("Please insert From: ");
@@ -189,17 +207,17 @@ public class Controller {
         
         int capacity = ReaderWriter.getInt("Please insert flight capacity: ");
         
-        clientWorker.addRequest("AddF " + from + " " + to + " " + capacity);
+        clientWorker.addRequest("AddF--" + from + "--" + to + "--" + capacity);
     }
 
     /**
-     * no sleep
+     * adds one admin to the server
      */
     private void addAdmin() {
         
         String username = ReaderWriter.getString("Please insert username: ");
         String password = ReaderWriter.getString("Please insert password: ");
-        clientWorker.addRequest("aDDA " + username + " " + password);
+        clientWorker.addRequest("aDDA--" + username + "--" + password);
     }
 
 
