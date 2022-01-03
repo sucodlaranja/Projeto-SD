@@ -39,6 +39,17 @@ class Flight implements Serializable {
     }
 
     /// Simple get.
+    public int getId() {
+        readWriteLock.readLock().lock();
+        try {
+            return id;
+        }
+        finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    /// Simple get.
     public String getStartLocation() {
         readWriteLock.readLock().lock();
         try {
@@ -80,11 +91,31 @@ class Flight implements Serializable {
     }
 
     /**
+     * Removes the reservation if there was any reservation.
+     * @param day day when the flight will happen.
+     * @return If there was a previous reservation or not.
+     */
+    public boolean cancelReservation(int day){
+        readWriteLock.writeLock().lock();
+        try {
+            int occ = occupation.get(day);
+            if (occ < maxOccupation) {
+                occupation.set(day,occ + 1);
+                return true;
+            }
+            else return false;
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
+    /**
      * Adds the reservation if there is space.
      * @param day day when the flight will happen.
      * @return If there was space or not.
      */
-    public boolean addRequest(int day){
+    public boolean addReservation(int day){
         readWriteLock.writeLock().lock();
         try {
             int occ = occupation.get(day);

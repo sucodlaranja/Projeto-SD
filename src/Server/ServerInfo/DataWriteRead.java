@@ -1,6 +1,7 @@
 package Server.ServerInfo;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -70,28 +71,28 @@ public class DataWriteRead {
     }
 
     ///Reads information from a given file.
-    public static LocalDateTime getInstanceOtherInformation(String filename) {
+    public static LocalDate getInstanceOtherInformation(String filename) {
 
-        LocalDateTime localDateTime = null;
+        LocalDate localDate = null;
         try {
             ObjectInputStream is =
                     new ObjectInputStream(new FileInputStream(filename));
-            localDateTime = ((LocalDateTime) is.readObject());
+            localDate = ((LocalDate) is.readObject());
         }
         catch (IOException ex) {
             System.out.println("O sistema nao conseguiu carregar o ficheiro: " + filename + ".");
         }
         catch (ClassNotFoundException ignored){ }
 
-        if (localDateTime == null) return LocalDateTime.now();
-        else return localDateTime;
+        if (localDate == null) return LocalDateTime.now().toLocalDate();
+        else return localDate;
     }
 
     /// Writes information on a given file.
-    public static void saveInstanceOtherInformation(Map map,LocalDateTime localDateTime,String filename) {
+    public static void saveInstanceOtherInformation(Map map, LocalDate localDate, String filename) {
         try {
             ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
-            os.writeObject(localDateTime);
+            os.writeObject(localDate);
             os.writeObject(map);
             os.flush();
             os.close();
