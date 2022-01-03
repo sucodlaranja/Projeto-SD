@@ -1,4 +1,6 @@
 package Client.View;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class ReaderWriter {
@@ -87,5 +89,22 @@ public class ReaderWriter {
             r = getInt();
         }
         return r;
+    }
+
+    //Reads nextline and checks if it as a date format.
+    public static String getDate(String str) {
+        String date;
+        try{
+            System.out.println(str);
+            date = scin.nextLine();
+            LocalDate.parse(date,DateTimeFormatter.ISO_DATE);
+            
+        } catch(Exception e) {
+            System.out.println("Wrong Format!");
+            date = getDate(str);
+        }
+        return date;
+            
+        
     }
 }

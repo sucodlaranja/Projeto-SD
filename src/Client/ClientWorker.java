@@ -271,8 +271,7 @@ public class ClientWorker {
          * @param str information to be serialized
          */
         private void serializeandSend(String str) throws IOException {
-            String[] spliter = str.split(" ");
-            
+            String[] spliter = str.split("--");
             switch (spliter[0]) {
                 case "close":
                     closeSocket();
@@ -295,8 +294,9 @@ public class ClientWorker {
                     break;
                 case "AddR":
                     out.writeInt(3);
-                    out.writeUTF(spliter[1]);// flight number
-                    out.writeUTF(spliter[2]);// day
+                    out.writeUTF(spliter[1]); //places
+                    out.writeUTF(spliter[2]); //first date
+                    out.writeUTF(spliter[3]);// second date
                     break;
                 case "RemR":
                     out.writeInt(4);

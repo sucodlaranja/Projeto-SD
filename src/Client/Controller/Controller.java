@@ -42,9 +42,9 @@ public class Controller {
         });
         menu.setHandler(1, this::signIn);
         menu.setHandler(2, this::signUp);
-
         menu.runOnce();
         }
+        ReaderWriter.pressEnterToContinue();
     }
 
 
@@ -100,14 +100,15 @@ public class Controller {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password");
 
-        ReaderWriter.printString("loading...");
         
-        clientWorker.addRequest("signIn " + username + " " + password);
+        
+        clientWorker.addRequest("signIn--" + username + "--" + password);
 
         this.clientWorker.startRequestWorker(); ///Starts worker
+        ReaderWriter.printString("loading...");
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
-        ReaderWriter.pressEnterToContinue();
+        
     }
 
     /**
@@ -118,10 +119,10 @@ public class Controller {
         String password = ReaderWriter.getString("Please insert your password");
         this.clientWorker.startRequestWorker(); //<- Start worker - manage client interactions with the server using RequestWorker.
         ReaderWriter.printString("loading...");
-        clientWorker.addRequest("signUp " + username + " " + password);
+        clientWorker.addRequest("signUp--" + username + "--" + password);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
-        ReaderWriter.pressEnterToContinue();
+        
     }
 
     /**
@@ -134,7 +135,7 @@ public class Controller {
         String to = ReaderWriter.getString("To: ");
         
         int depart = ReaderWriter.getInt("Depart: ");
-        clientWorker.addRequest("verif " + from + " " + to + " " + depart);
+        clientWorker.addRequest("verif--" + from + "--" + to + "--" + depart);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();
@@ -144,9 +145,19 @@ public class Controller {
      * Requests a reservation
      */
     private void makeReservation() {
-        int flight = ReaderWriter.getInt("Please Insert flight number: ");
-        int day = ReaderWriter.getInt("Please Insert day of flight: ");
-        clientWorker.addRequest("AddR" + flight + " " + day);
+        StringBuilder request = new StringBuilder();
+        String date1 = "";
+        String date2 = "";
+        String flight = "";
+        while(true) {
+         flight = ReaderWriter.getString("Please Insert Place/stop: ");
+         if(flight.equals("stop")) {break;}
+         request.append(flight + ";");
+        }
+        date1 = ReaderWriter.getDate("Please Insert First date[year(xxxx)-month(xx)-day(xx)]");
+        date2 = ReaderWriter.getDate("Please Insert Second date[year(xxxx)-month(xx)-day(xx)]");
+       
+        clientWorker.addRequest("AddR--" + flight + "--" + date1 + "--" + date2);
 
     }
 
@@ -155,7 +166,7 @@ public class Controller {
      */
     private void cancelReservation() {
         int reservation = ReaderWriter.getInt("Please Insert reservation number: ");
-        clientWorker.addRequest("RemR:" + reservation);
+        clientWorker.addRequest("RemR--" + reservation);
         
         
     }
@@ -181,7 +192,7 @@ public class Controller {
      */
     private void endDay() {
         int day = ReaderWriter.getInt("Please insert day: ");
-        clientWorker.addRequest("End " + day);
+        clientWorker.addRequest("End--" + day);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();
@@ -196,7 +207,7 @@ public class Controller {
         
         int capacity = ReaderWriter.getInt("Please insert flight capacity: ");
         
-        clientWorker.addRequest("AddF " + from + " " + to + " " + capacity);
+        clientWorker.addRequest("AddF--" + from + "--" + to + "--" + capacity);
     }
 
     /**
@@ -206,7 +217,7 @@ public class Controller {
         
         String username = ReaderWriter.getString("Please insert username: ");
         String password = ReaderWriter.getString("Please insert password: ");
-        clientWorker.addRequest("aDDA " + username + " " + password);
+        clientWorker.addRequest("aDDA--" + username + "--" + password);
     }
 
 

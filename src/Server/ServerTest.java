@@ -49,8 +49,9 @@ public class ServerTest {
                 out.writeUTF("1--verif funfa");
                 break;
             case 3: // add reservation
-                int flightIdA = in.readInt();
-                String dayR = in.readUTF();
+                String flights = in.readUTF();
+                String date1 = in.readUTF();
+                String date2 = in.readUTF();
                 out.writeUTF("3--add reservation funciona");
                 break;
             case 4: // remove reservation
