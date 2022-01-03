@@ -1,6 +1,8 @@
-package Client;
+package Client.Controller;
 
-
+import Client.ClientWorker;
+import Client.View.Menu;
+import Client.View.ReaderWriter;
 
 public class Controller {
     // O model tem a 'lógica de negócio'.
@@ -22,9 +24,6 @@ public class Controller {
      * seleccionada.
      */
     public void run() {
-        // Start worker - manage client interactions with the server using RequestWorker.
-        this.clientWorker.startRequestWorker();
-
         ReaderWriter.printString("Welcome to Flight Choicer!");
         this.authenticate();
         this.mainMenu();
@@ -93,23 +92,31 @@ public class Controller {
 
     //Handlers
 
-    // TODO: Decidir protocolo!
+    /**
+     * handles signIn operation and starts RequestWorker so it can communicate with the server
+     */
 
     private void signIn() {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password");
 
         ReaderWriter.printString("loading...");
+        
         clientWorker.addRequest("signIn " + username + " " + password);
+
+        this.clientWorker.startRequestWorker(); ///Starts worker
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();
     }
 
+    /**
+     * handles signUp operation and starts RequestWorker so it can communicate with the server
+     */
     private void signUp() {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password");
-
+        this.clientWorker.startRequestWorker(); //<- Start worker - manage client interactions with the server using RequestWorker.
         ReaderWriter.printString("loading...");
         clientWorker.addRequest("signUp " + username + " " + password);
         clientWorker.waitMain();
@@ -118,7 +125,7 @@ public class Controller {
     }
 
     /**
-     *
+     *  Request all available flights from To in specific day
      */
     private void verifyFlights() {
 
@@ -134,8 +141,7 @@ public class Controller {
     }
 
     /**
-     * TODO: Casos de nao ser possivel
-     * no sleep
+     * Requests a reservation
      */
     private void makeReservation() {
         int flight = ReaderWriter.getInt("Please Insert flight number: ");
@@ -145,7 +151,7 @@ public class Controller {
     }
 
     /**
-     * no sleep
+     * Cancels a reservation
      */
     private void cancelReservation() {
         int reservation = ReaderWriter.getInt("Please Insert reservation number: ");
@@ -155,7 +161,8 @@ public class Controller {
     }
 
     /**
-     *
+     *  verify all requested reservations that the user didn't saw before,
+     *  Has the option for the user to request all previous reservations to the server.
      */
     private void checkReservations() {
         ReaderWriter.printString(clientWorker.getResponses());
@@ -170,7 +177,7 @@ public class Controller {
     }
 
     /**
-     * sleep?
+     * ends a day
      */
     private void endDay() {
         int day = ReaderWriter.getInt("Please insert day: ");
@@ -181,7 +188,7 @@ public class Controller {
     }
 
     /**
-     * sleep?
+     * adds one flight to the server
      */
     private void addFlight() {
         String from = ReaderWriter.getString("Please insert From: ");
@@ -193,7 +200,7 @@ public class Controller {
     }
 
     /**
-     * no sleep
+     * adds one admin to the server
      */
     private void addAdmin() {
         

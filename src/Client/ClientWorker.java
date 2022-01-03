@@ -52,10 +52,9 @@ public class ClientWorker {
     }
 
     /**
+     * Handles response from server
      * 
-     * 
-     * @param response
-     * @return
+     * @param response response given from the server.
      */
     public void handleresponse(String response) {
         lock.lock();
@@ -120,7 +119,7 @@ public class ClientWorker {
     }
 
     /**
-     * Deletes one request from request list, that is already answered
+     * Deletes one request from request list
      * 
      * @param request request to be removed
      */
@@ -134,10 +133,7 @@ public class ClientWorker {
     }
 
     /**
-     * TODO: NOT SURE QUE SEJA NECESSARIO, DEPENDE DO PROTOCOLO
-     * 
-     * @param wich
-     * @return
+     * Gives the responses in responses list that was unseen
      */
     public String getResponses() {
         lock.lock();
@@ -158,7 +154,7 @@ public class ClientWorker {
         }
     }
 
-    // TODO: not sure que isto funciona
+    // Gives last response in response list
     public String getResponse() {
         lock.lock();
         try {
@@ -178,8 +174,7 @@ public class ClientWorker {
     // waiters
 
     /**
-     * Puts main thread to sleep while there is no responses
-     * TODO : ISto apenas funciona se as respostas estiverem vaiz
+     * Puts main thread to sleep while there is no more new responses
      */
     public void waitMain() {
         lock.lock();
@@ -199,6 +194,7 @@ public class ClientWorker {
         }
     }
 
+    //Puts requestWorker thread to sleep until there is a request
     public void waitRequestWorker() {
         lock.lock();
         try {
@@ -217,14 +213,15 @@ public class ClientWorker {
         }
     }
 
+    //Class that communicates with the server
     public class RequestWorker implements Runnable {
         ClientWorker worker;
         private Socket socket;
         private DataInputStream in;
         private DataOutputStream out;
 
-        // TODO: Definir o protocolo
-
+        
+        //Constructor
         public RequestWorker(ClientWorker worker) {
             try {
                 this.worker = worker;
@@ -232,12 +229,12 @@ public class ClientWorker {
                 out = new DataOutputStream(socket.getOutputStream());
                 in = new DataInputStream(socket.getInputStream());
             } catch (IOException e) {
-                e.printStackTrace(); // TODO: e so pra testar
+                e.printStackTrace(); 
             }
         }
 
         /**
-         * Como fechar o socket sem excecao? E necessario enviar para o outro lad?
+         * Does communication with the server
          */
         @Override
         public void run() {
@@ -269,6 +266,10 @@ public class ClientWorker {
             }
         }
 
+        /**
+         *Serializes information and sends it to the server
+         * @param str information to be serialized
+         */
         private void serializeandSend(String str) throws IOException {
             String[] spliter = str.split(" ");
             

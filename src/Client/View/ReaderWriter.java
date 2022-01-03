@@ -1,11 +1,11 @@
-package Client;
+package Client.View;
 import java.util.Scanner;
 
 public class ReaderWriter {
     private static Scanner scin = new Scanner(System.in);
 
     /**
-     * Limpa o ecrã do terminal.
+     * cleans screen
      */
     public static void clearScreen() {  
         System.out.print("\033[H\033[2J");  
@@ -13,7 +13,7 @@ public class ReaderWriter {
     } 
 
     /**
-     * Bloqueia a aplicação até o utilizar pressionar enter.
+     * Blocks application until User presses enter
      */
     public static void pressEnterToContinue()
     { 
@@ -27,22 +27,16 @@ public class ReaderWriter {
     }
 
     /**
-     * Dá print de uma dada String no terminal.
-     * @param str String que irá dar print.
+     * Prints one given string
+     * @param str String that will be printed.
      */
     public static void printString(String str) {
         System.out.println(str);
     }
 
-    /**
-     * Obtém uma opção do terminal para o menu.
-     */
-    public static void obterOpcao() {
-        System.out.print("Opção: ");
-    }
 
     /**
-     * Lê a próxima linha que o utilizador mete no terminal.
+     * Reads next line from User
      * @return String que foi obtido.
      */
     public static String getString() {
@@ -52,9 +46,9 @@ public class ReaderWriter {
     }
 
     /**
-     * Lê a próxima linha que o utilizador mete, apresentando antes uma dada String no terminal.
-     * @param str String com a mensagem a apresentar antes.
-     * @return String que foi obtido.
+     * Reads next line from the user, present one string previously
+     * @param str String with message to present previously.
+     * @return String wich is UserInput
      */
     public static String getString(String str) {
         System.out.println(str);
@@ -62,28 +56,35 @@ public class ReaderWriter {
 
         return res;
     }
-
+    /**
+     * Reads UserInput, for int variables 
+     * @return UserInput number
+     */
     public static int getInt() {
         int r;
         try {
-            r = scin.nextInt();
+            r = Integer.parseInt(scin.nextLine());
+            
         } catch (Exception e) {
             System.out.println("Please insert a number: ");
-            scin.nextLine();
             r = getInt();
         }
         return r;
     }
+    /**
+     * Reads next line from the user, present one string previously
+     * @param str String with message to present previously.
+     * @return UserInput number
+     */
     public static int getInt(String str) {
         int r;
 
         try {
             System.out.println(str);
-            r = scin.nextInt();
+            r = Integer.parseInt(scin.nextLine());
         } catch (Exception e) {
             System.out.println("Please insert a number: ");
-            scin.nextLine();
-            r = getInt(str);
+            r = getInt();
         }
         return r;
     }
