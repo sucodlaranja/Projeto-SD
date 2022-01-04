@@ -24,7 +24,7 @@ public class Controller {
      * seleccionada.
      */
     public void run() {
-        ReaderWriter.printString("Welcome to Flight Choicer!");
+        ReaderWriter.printString("Welcome to Flight Choicer!\n(BETA :: username = admin, password = admin)");
         this.authenticate();
         this.mainMenu();
         ReaderWriter.printString("Até breve...");
@@ -98,7 +98,7 @@ public class Controller {
 
     private void signIn() {
         String username = ReaderWriter.getString("Please insert your username: ");
-        String password = ReaderWriter.getString("Please insert your password");
+        String password = ReaderWriter.getString("Please insert your password: ");
 
         
         
@@ -116,7 +116,7 @@ public class Controller {
      */
     private void signUp() {
         String username = ReaderWriter.getString("Please insert your username: ");
-        String password = ReaderWriter.getString("Please insert your password");
+        String password = ReaderWriter.getString("Please insert your password: ");
         this.clientWorker.startRequestWorker(); //<- Start worker - manage client interactions with the server using RequestWorker.
         ReaderWriter.printString("loading...");
         clientWorker.addRequest("signUp--" + username + "--" + password);
@@ -126,7 +126,7 @@ public class Controller {
     }
 
     /**
-     *  Request all available flights from To in specific day
+     *  Request all available flights from To
      */
     private void verifyFlights() {
 
@@ -134,8 +134,8 @@ public class Controller {
         String from = ReaderWriter.getString("From: ");
         String to = ReaderWriter.getString("To: ");
         
-        int depart = ReaderWriter.getInt("Depart: ");
-        clientWorker.addRequest("verif--" + from + "--" + to + "--" + depart);
+        
+        clientWorker.addRequest("verif--" + from + "--" + to);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();
@@ -146,14 +146,15 @@ public class Controller {
      */
     private void makeReservation() {
         StringBuilder request = new StringBuilder();
+        
         String date1 = "";
         String date2 = "";
         String flight = "";
-        while(true) {
+         do {
          flight = ReaderWriter.getString("Please Insert Place/stop: ");
-         if(flight.equals("stop")) {break;}
+
          request.append(flight + ";");
-        }
+        }while(!flight.equals("stop"));
         date1 = ReaderWriter.getDate("Please Insert First date[year(xxxx)-month(xx)-day(xx)]");
         date2 = ReaderWriter.getDate("Please Insert Second date[year(xxxx)-month(xx)-day(xx)]");
        

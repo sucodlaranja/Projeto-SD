@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-// TODO: DEFINIR PROTOCOLO
+
 
 public class ClientWorker {
     private final List<String> requests;
@@ -98,7 +98,6 @@ public class ClientWorker {
         lock.lock();
         try {
             requests.add(request);
-            System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
             sleepRequest.signal();
         } finally {
             lock.unlock();
@@ -144,10 +143,9 @@ public class ClientWorker {
             } else {
                 for (String r : responses) {
                     response.append(r + "\n");
-                    responses.remove(r);
                 }
+                responses.clear();
             }
-
             return response.toString();
         } finally {
             lock.unlock();
@@ -159,7 +157,6 @@ public class ClientWorker {
         lock.lock();
         try {
             String ola = responses.remove(responses.size() - 1);
-            System.out.println(ola);
             return ola;
         } finally {
             lock.unlock();
@@ -201,9 +198,7 @@ public class ClientWorker {
         try {
             while (requests.isEmpty()) {
                 try {
-                    System.out.println("Vou dormir");
                     sleepRequest.await();
-                    System.out.println("Acordei");
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -292,7 +287,6 @@ public class ClientWorker {
                     out.writeInt(2);
                     out.writeUTF(spliter[1]); // from
                     out.writeUTF(spliter[2]); // to
-                    out.writeUTF(spliter[3]); // depart
                     break;
                 case "AddR":
                     out.writeInt(3);
@@ -315,7 +309,6 @@ public class ClientWorker {
                     out.writeInt(7);
                     out.writeUTF(spliter[1]); // From
                     out.writeUTF(spliter[2]); // to
-                    System.out.println(spliter);
                     out.writeInt(Integer.parseInt(spliter[3])); // Capacity
                     break;
                 case "aDDA":

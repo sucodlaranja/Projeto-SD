@@ -1,15 +1,18 @@
 package Server;
 
-import Client.View.ReaderWriter;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 import Server.ServerInfo.ClientInfo.ClientFacade;
 import Server.ServerInfo.ClientInfo.IClientFacade;
 import Server.ServerInfo.ClientInfo.RepeatedKey;
 import Server.ServerInfo.FlightInfo.FlightFacade;
 import Server.ServerInfo.FlightInfo.IFlightFacade;
-
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 /// This is the server of this project, and will handle all requests.
 public class Server {
@@ -88,10 +91,9 @@ public class Server {
                                 close = true;
                             }
                         }
-                        case 2 -> { // verif flights
+                        case 2 -> { // verif flights 
                             String fromV = in.readUTF();
                             String toV = in.readUTF();
-                            int departureV = in.readInt();
                             out.writeUTF("1--verif funfa");
                         }
                         case 3 -> { // add reservation
