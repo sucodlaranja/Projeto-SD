@@ -208,6 +208,9 @@ public class Controller {
         int capacity = ReaderWriter.getInt("Please insert flight capacity: ");
         
         clientWorker.addRequest("AddF--" + from + "--" + to + "--" + capacity);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        ReaderWriter.pressEnterToContinue();
     }
 
     /**
@@ -218,6 +221,9 @@ public class Controller {
         String username = ReaderWriter.getString("Please insert username: ");
         String password = ReaderWriter.getString("Please insert password: ");
         clientWorker.addRequest("aDDA--" + username + "--" + password);
+        clientWorker.waitMain();
+        ReaderWriter.printString(clientWorker.getResponse());
+        ReaderWriter.pressEnterToContinue();
     }
 
 

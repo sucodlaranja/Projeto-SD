@@ -3,6 +3,7 @@ package Server;
 import Client.View.ReaderWriter;
 import Server.ServerInfo.ClientInfo.ClientFacade;
 import Server.ServerInfo.ClientInfo.IClientFacade;
+import Server.ServerInfo.ClientInfo.RepeatedKey;
 import Server.ServerInfo.FlightInfo.FlightFacade;
 import Server.ServerInfo.FlightInfo.IFlightFacade;
 
@@ -47,7 +48,7 @@ public class Server {
         }
     }
 
-    static class ClientHandler implements Runnable{
+     class ClientHandler implements Runnable{
 
         DataOutputStream out;
         DataInputStream in;
@@ -65,14 +66,27 @@ public class Server {
                 try {
                     switch (in.readInt()) {
                         case 0 -> { // signin
-                            String usernameIn = in.readUTF();
-                            String passwordIn = in.readUTF();
-                            out.writeUTF("1--signin funciona");
+                            String username = in.readUTF();
+                            String password = in.readUTF();
+                            if (clients.isClientInTheSystem(username,password)) {
+                                if (clients.isClientAdmin(username)) out.writeUTF("2--Welcome boss!");
+                                else out.writeUTF("1--Login successful!");
+                            }
+                            else {
+                                out.writeUTF("-1--Username and password combination does not exist!");
+                                close = true;
+                            }
                         }
                         case 1 -> { // signup
-                            String usernameUp = in.readUTF();
-                            String passwordUp = in.readUTF();
-                            out.writeUTF("1--signun funciona");
+                            String username = in.readUTF();
+                            String password = in.readUTF();
+                            try {
+                                clients.addClient(username,password,false);
+                                out.writeUTF("1--SignUp successful!");
+                            } catch (RepeatedKey e) {
+                                out.writeUTF("-1--" + e.getMessage());
+                                close = true;
+                            }
                         }
                         case 2 -> { // verif flights
                             String fromV = in.readUTF();
@@ -99,23 +113,32 @@ public class Server {
                         case 7 -> { // add flights
                             String fromA = in.readUTF();
                             String toA = in.readUTF();
-                            String departureA = in.readUTF();
+                            int capacity = in.readInt();
+                            System.out.println(capacity);
                             out.writeUTF("1--add flights funciona");
                         }
                         case 8 -> { // add admin
                             String username = in.readUTF();
                             String password = in.readUTF();
-                            out.writeUTF("1--add admin funciona");
+                            try {
+                                clients.addClient(username,password,true);
+                                out.writeUTF("1--New Admin " + username + "added with success!");
+                            } catch (RepeatedKey e) {
+                                out.writeUTF("-1--" + e.getMessage());
+                            }
                         }
                         default -> {
+                            out.writeUTF("-1--Option does not exist");
                         }
                     }
                     out.flush();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                close = true;
             }
+
+
+            System.out.println("Desligar "); // TODO RETIRAR
         }
     }
 }

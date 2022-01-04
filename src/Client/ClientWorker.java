@@ -97,8 +97,8 @@ public class ClientWorker {
     public void addRequest(String request) {
         lock.lock();
         try {
-           
             requests.add(request);
+            System.out.println("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
             sleepRequest.signal();
         } finally {
             lock.unlock();
@@ -158,8 +158,9 @@ public class ClientWorker {
     public String getResponse() {
         lock.lock();
         try {
-            return responses.remove(responses.size() - 1);
-
+            String ola = responses.remove(responses.size() - 1);
+            System.out.println(ola);
+            return ola;
         } finally {
             lock.unlock();
         }
@@ -200,8 +201,9 @@ public class ClientWorker {
         try {
             while (requests.isEmpty()) {
                 try {
-                    
+                    System.out.println("Vou dormir");
                     sleepRequest.await();
+                    System.out.println("Acordei");
                 } catch (InterruptedException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -309,11 +311,12 @@ public class ClientWorker {
                     out.writeInt(6);
                     out.writeUTF(spliter[1]); // day
                     break;
-                case "AddF ":
+                case "AddF":
                     out.writeInt(7);
                     out.writeUTF(spliter[1]); // From
                     out.writeUTF(spliter[2]); // to
-                    out.writeUTF(spliter[3]); // Capacity
+                    System.out.println(spliter);
+                    out.writeInt(Integer.parseInt(spliter[3])); // Capacity
                     break;
                 case "aDDA":
                     out.writeInt(8);
