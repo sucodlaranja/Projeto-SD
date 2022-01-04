@@ -18,6 +18,7 @@ public class ClientFacade implements IClientFacade {
     /// Constructor that will read a file containing /ref Clients.
     public ClientFacade(){
         clients = DataWriteRead.getInstanceHashMap("clients");
+        if (clients.isEmpty()) clients.put("admin",new Client("admin","admin",true)); // TODO : MOSTRAR NO INICIO
     }
 
     /**
