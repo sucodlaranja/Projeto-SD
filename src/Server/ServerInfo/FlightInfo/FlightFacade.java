@@ -78,6 +78,24 @@ public class FlightFacade implements IFlightFacade {
         }
     }
 
+    public void removeReservation(int idReservation) throws ReservationNotAvailable {
+        readWriteLock.writeLock().lock();
+        try {
+            FlightReservation flightRes = flightReservations.remove(idReservation);
+            if (flightRes == null) throw new  ReservationNotAvailable("Reservation does not exist.\n");
+            else{
+                int days = (int) lastUpdated.until(flightRes.dateOfReservation(),ChronoUnit.DAYS);
+                for(int flightsIds : flightRes.idsFlight()){
+                    if (!flights.get(flightsIds).cancelReservation(days))
+                        throw new  ReservationNotAvailable("Data does not match! Something is wrong.\n");
+                }
+            }
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
     /**
      * Finds all possible paths from startLocation to destinyLocation.
      * @param startLocation Location where the path will start.
