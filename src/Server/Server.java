@@ -7,6 +7,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
+import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import Server.ServerInfo.ClientInfo.ClientFacade;
 import Server.ServerInfo.ClientInfo.IClientFacade;
@@ -94,12 +97,17 @@ public class Server {
                         case 2 -> { // verif flights 
                             String fromV = in.readUTF();
                             String toV = in.readUTF();
-                            out.writeUTF("1--verif funfa");
+                            String result = pathsToString(flights.findAllPossiblePaths(fromV,toV));
+                            System.out.println(fromV);
+                            System.out.println(toV);
+                            System.out.println(result);
+                            out.writeUTF("1--" + result);
                         }
                         case 3 -> { // add reservation
                             String flights = in.readUTF();
                             String date1 = in.readUTF();
                             String date2 = in.readUTF();
+
                             out.writeUTF("3--add reservation funciona");
                         }
                         case 4 -> { // remove reservation
@@ -116,8 +124,8 @@ public class Server {
                             String fromA = in.readUTF();
                             String toA = in.readUTF();
                             int capacity = in.readInt();
-                            System.out.println(capacity);
-                            out.writeUTF("1--add flights funciona");
+                            flights.addFlight(fromA,toA,capacity);
+                            out.writeUTF("1--Flight added whit success!");
                         }
                         case 8 -> { // add admin
                             String username = in.readUTF();
@@ -142,5 +150,17 @@ public class Server {
 
             System.out.println("Desligar "); // TODO RETIRAR
         }
+
+         private static String pathsToString(List<List<String>> allPaths){
+             StringBuilder sb = new StringBuilder();
+
+             for(List<String> path : allPaths){
+                 sb.append(path.remove(0));
+                 for(String location : path) sb.append(" -> ").append(location);
+                 sb.append("\n");
+             }
+
+             return sb.toString();
+         }
     }
 }

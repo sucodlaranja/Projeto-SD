@@ -123,6 +123,11 @@ public class FlightFacade implements IFlightFacade {
             allPaths.addAll(solutions);
         }
 
+        if (allPaths.isEmpty()){
+            List<String> l = new ArrayList<>();
+            l.add("There isn't any flights available!\n");
+            allPaths.add(l);
+        }
         return allPaths;
     }
 
