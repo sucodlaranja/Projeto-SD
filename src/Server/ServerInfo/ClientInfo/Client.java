@@ -13,13 +13,19 @@ class Client implements Serializable {
     private final String password;
     /// List of ids of reservations the client made.
     private final List<Integer> reservations;
+    /// If this account has the admin privilegies.
+    private boolean isAdmin;
 
     /// Basic Constructor.
-    public Client(String username, String password){
+    public Client(String username, String password,boolean isAdmin){
         this.username = username;
         this.password = password;
+        this.isAdmin = isAdmin;
         reservations = new ArrayList<>();
     }
+
+    /// Simple get
+    public boolean isAdmin() {return isAdmin;}
 
     /// Simple get.
     public String getUsername() {

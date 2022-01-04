@@ -78,6 +78,11 @@ public class FlightFacade implements IFlightFacade {
         }
     }
 
+    /**
+     * Removes a reservation from the system.
+     * @param idReservation Id of the Reservation.
+     * @throws ReservationNotAvailable If the reservation could not be removed.
+     */
     public void removeReservation(int idReservation) throws ReservationNotAvailable {
         readWriteLock.writeLock().lock();
         try {

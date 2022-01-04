@@ -26,7 +26,7 @@ public class ClientFacade implements IClientFacade {
      * @param username The new Client's username.
      * @param password The new Client's password.
      */
-    public void addClient(String username,String password) throws RepeatedKey{
+    public void addClient(String username,String password,boolean isAdmin) throws RepeatedKey{
         readWriteLock.readLock().lock();
         try {
             if (clients.containsKey(username)) throw new RepeatedKey(username);
@@ -36,7 +36,7 @@ public class ClientFacade implements IClientFacade {
         }
         readWriteLock.writeLock().lock();
         try {
-            clients.put(username,new Client(username,password));
+            clients.put(username,new Client(username,password,isAdmin));
         }
         finally {
             readWriteLock.writeLock().unlock();
@@ -53,6 +53,21 @@ public class ClientFacade implements IClientFacade {
         readWriteLock.readLock().lock();
         try {
             return clients.containsKey(username) && clients.get(username).getPassword().equals(password);
+        }
+        finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Checks if a client is a administrator.
+     * @param username Username of the admin.
+     * @return If this client is or isn't a admin.
+     */
+    public boolean isClientAdmin(String username){
+        readWriteLock.readLock().lock();
+        try {
+            return clients.containsKey(username) && clients.get(username).isAdmin();
         }
         finally {
             readWriteLock.readLock().unlock();
