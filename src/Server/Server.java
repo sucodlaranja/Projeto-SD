@@ -7,15 +7,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
-import java.util.StringJoiner;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import Server.ServerInfo.ClientInfo.ClientFacade;
 import Server.ServerInfo.ClientInfo.IClientFacade;
 import Server.ServerInfo.ClientInfo.RepeatedKey;
-import Server.ServerInfo.FlightInfo.FlightFacade;
-import Server.ServerInfo.FlightInfo.IFlightFacade;
+import Server.ServerInfo.FlightInfo.*;
 
 /// This is the server of this project, and will handle all requests.
 public class Server {
@@ -56,8 +55,9 @@ public class Server {
 
      class ClientHandler implements Runnable{
 
-        DataOutputStream out;
-        DataInputStream in;
+        private final DataOutputStream out;
+        private final DataInputStream in;
+        private String username;
 
         public ClientHandler(Socket requestSocket) throws IOException {
             out = new DataOutputStream(new BufferedOutputStream(requestSocket.getOutputStream()));
@@ -77,6 +77,7 @@ public class Server {
                             if (clients.isClientInTheSystem(username,password)) {
                                 if (clients.isClientAdmin(username)) out.writeUTF("2--Welcome boss!");
                                 else out.writeUTF("1--Login successful!");
+                                this.username = username;
                             }
                             else {
                                 out.writeUTF("-1--Username and password combination does not exist!");
@@ -89,43 +90,78 @@ public class Server {
                             try {
                                 clients.addClient(username,password,false);
                                 out.writeUTF("1--SignUp successful!");
+                                this.username = username;
                             } catch (RepeatedKey e) {
                                 out.writeUTF("-1--" + e.getMessage());
                                 close = true;
                             }
                         }
-                        case 2 -> { // verif flights 
-                            String fromV = in.readUTF();
-                            String toV = in.readUTF();
-                            String result = pathsToString(flights.findAllPossiblePaths(fromV,toV));
-                            System.out.println(fromV);
-                            System.out.println(toV);
-                            System.out.println(result);
-                            out.writeUTF("1--" + result);
+                        case 2 -> { // verif flights
+                            if (in.readBoolean()){
+                                out.writeUTF("1--All the flights available:\n"
+                                        + String.join("\n",flights.getAllFlights()));
+                            }
+                            else{
+                                String fromV = in.readUTF();
+                                String toV = in.readUTF();
+                                String result = pathsToString(flights.findAllPossiblePaths(fromV,toV));
+                                out.writeUTF("1--" + result);
+                            }
                         }
                         case 3 -> { // add reservation
-                            String flights = in.readUTF();
+                            String flightsList = in.readUTF();
                             String date1 = in.readUTF();
                             String date2 = in.readUTF();
-
-                            out.writeUTF("3--add reservation funciona");
+                            try {
+                                int res = flights.addReservation(Arrays.asList(flightsList.split(";")),
+                                        LocalDate.parse(date1), LocalDate.parse(date2));
+                                clients.addReservations(username,res);
+                                out.writeUTF("3--Reservation " + res +" added with success.");
+                            } catch (FlightNotAvailable | WrongDate e){
+                                out.writeUTF("3--" + e.getMessage());
+                            }
                         }
                         case 4 -> { // remove reservation
                             int flightIdR = in.readInt();
-                            out.writeUTF("3--remove reservation funciona");
+                            if (clients.isReservationFromThisUser(username,flightIdR)){
+                                try {
+                                    flights.removeReservation(flightIdR);
+                                    clients.removeReservations(username,flightIdR);
+                                    out.writeUTF("3--Reservation removed with success.");
+                                } catch (ReservationNotAvailable | WrongDate e) {
+                                    out.writeUTF("-1--" + e.getMessage());
+                                }
+                            } else out.writeUTF("-1--" + username + " didn't make this reservation.");
+
+
                         }
-                        case 5 -> // check reservations
-                                out.writeUTF("1--check reservations funciona");
+                        case 5 -> { // check reservations
+                            List<Integer> l = clients.getsReservation(username);
+                            if (l.isEmpty()) out.writeUTF("-1--" + username + " did not make any reservation.");
+                            else {
+                                List<String> p = l.stream().map(h -> flights.reservationToString(h)).collect(Collectors.toList());
+                                String s = String.join("\n", p);
+                                out.writeUTF("1--" + s);
+                            }
+                        }
+
                         case 6 -> { // end days
                             String dayE = in.readUTF();
-                            out.writeUTF("1--end days funciona");
+                            try {
+                                if( flights.endDay(LocalDate.parse(dayE)))
+                                    out.writeUTF("1--Day closed.No more reservations or cancellations allowed.");
+                                else
+                                    out.writeUTF("-1--Reservations and cancellations today were already closed");
+                            } catch (WrongDate e) {
+                                out.writeUTF("3--" + e.getMessage());
+                            }
                         }
                         case 7 -> { // add flights
                             String fromA = in.readUTF();
                             String toA = in.readUTF();
                             int capacity = in.readInt();
                             flights.addFlight(fromA,toA,capacity);
-                            out.writeUTF("1--Flight added whit success!");
+                            out.writeUTF("1--Flight added with success!");
                         }
                         case 8 -> { // add admin
                             String username = in.readUTF();
@@ -148,7 +184,7 @@ public class Server {
             }
 
 
-            System.out.println("Desligar "); // TODO RETIRAR
+            System.out.println("ClientHandler ends\n "); // TODO : DEBUG!
         }
 
          private static String pathsToString(List<List<String>> allPaths){

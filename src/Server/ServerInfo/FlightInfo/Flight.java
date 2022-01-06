@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /// This class stores the information of a single flight.
 class Flight implements Serializable {
 
-    private static final int DAYS_AVAILABLE = 90;
+    public static final int DAYS_AVAILABLE = 90;
 
     /// The identificador of a flight.
     private final int id;
@@ -37,6 +37,8 @@ class Flight implements Serializable {
             occupation.add(maxOccupation);
         }
     }
+
+
 
     /// Simple get.
     public int getId() {
@@ -119,6 +121,7 @@ class Flight implements Serializable {
         readWriteLock.writeLock().lock();
         try {
             int occ = occupation.get(day);
+            System.out.println(occ);
             if (occ > 0) {
                 occupation.set(day,occ - 1);
                 return true;
@@ -128,6 +131,11 @@ class Flight implements Serializable {
         finally {
             readWriteLock.writeLock().unlock();
         }
+    }
+
+    /// Simple to String
+    public String toString(){
+        return startLocation + " -> " + destinyLocation;
     }
 
 }

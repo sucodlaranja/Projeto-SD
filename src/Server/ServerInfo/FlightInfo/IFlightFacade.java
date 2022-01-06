@@ -1,11 +1,7 @@
 package Server.ServerInfo.FlightInfo;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /// This interface will allow other classes to use the FlightFacade component.
 public interface IFlightFacade {
@@ -29,12 +25,29 @@ public interface IFlightFacade {
      * @return The id of the reservation.
      * @throws FlightNotAvailable If there was some problem in the reservation.
      */
-    public int addReservation(List<String> destinations, LocalDate startDate, LocalDate endDate) throws FlightNotAvailable;
+    int addReservation(List<String> destinations, LocalDate startDate, LocalDate endDate) throws FlightNotAvailable, WrongDate;
 
     /**
      * Removes a reservation from the system.
      * @param idReservation Id of the Reservation.
      * @throws ReservationNotAvailable If the reservation could not be removed.
      */
-    public void removeReservation(int idReservation) throws ReservationNotAvailable;
+    void removeReservation(int idReservation) throws ReservationNotAvailable, WrongDate;
+
+    /**
+     * This method will allow this system to know that no more operation is allowed today \n
+     * @return If there was change in the boolean or not.
+     */
+    boolean endDay(LocalDate day) throws WrongDate;
+
+    /**
+     * Gets a list of all the possible flights.
+     * @return A list of all the flights.
+     */
+    List<String> getAllFlights();
+
+    String reservationToString(int reservation);
+
+    /// Saves all the info on a file
+    void saveInfo();
 }

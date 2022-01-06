@@ -14,7 +14,7 @@ class Client implements Serializable {
     /// List of ids of reservations the client made.
     private final List<Integer> reservations;
     /// If this account has the admin privilegies.
-    private boolean isAdmin;
+    private final boolean isAdmin;
 
     /// Basic Constructor.
     public Client(String username, String password,boolean isAdmin){
@@ -45,5 +45,10 @@ class Client implements Serializable {
     /// Adds an id to the list of reservations.
     public void addReservations(Integer reservationId){
         reservations.add(reservationId);
+    }
+
+    /// Adds an id to the list of reservations.
+    public void removeReservations(Integer reservationId){
+        reservations.remove(reservationId);
     }
 }

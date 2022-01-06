@@ -153,12 +153,12 @@ public class Controller {
          do {
          flight = ReaderWriter.getString("Please Insert Place/stop: ");
 
-         request.append(flight + ";");
+         request.append(flight).append(";");
         }while(!flight.equals("stop"));
         date1 = ReaderWriter.getDate("Please Insert First date[year(xxxx)-month(xx)-day(xx)]");
         date2 = ReaderWriter.getDate("Please Insert Second date[year(xxxx)-month(xx)-day(xx)]");
        
-        clientWorker.addRequest("AddR--" + flight + "--" + date1 + "--" + date2);
+        clientWorker.addRequest("AddR--" + request + "--" + date1 + "--" + date2);
 
     }
 

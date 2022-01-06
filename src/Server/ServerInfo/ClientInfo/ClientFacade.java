@@ -2,6 +2,7 @@ package Server.ServerInfo.ClientInfo;
 
 import Server.ServerInfo.DataWriteRead;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -18,7 +19,7 @@ public class ClientFacade implements IClientFacade {
     /// Constructor that will read a file containing /ref Clients.
     public ClientFacade(){
         clients = DataWriteRead.getInstanceHashMap("clients");
-        if (clients.isEmpty()) clients.put("admin",new Client("admin","admin",true)); // TODO : MOSTRAR NO INICIO
+        if (clients.isEmpty()) clients.put("admin",new Client("admin","admin",true));
     }
 
     /**
@@ -72,6 +73,68 @@ public class ClientFacade implements IClientFacade {
         }
         finally {
             readWriteLock.readLock().unlock();
+        }
+    }
+
+    /**
+     * Adds a reservation to this client.
+     * @param username The username of the user.
+     * @param reservation The id of the reservation.
+     */
+    public void addReservations(String username,int reservation){
+        readWriteLock.writeLock().lock();
+        try {
+            clients.get(username).addReservations(reservation);
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Remove a reservation to this client.
+     * @param username The username of the user.
+     * @param reservation The id of the reservation.
+     */
+    public void removeReservations(String username,int reservation){
+        readWriteLock.writeLock().lock();
+        try {
+            clients.get(username).removeReservations(reservation);
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Checks if a client makes a reservation.
+     * @param username The username of the user.
+     * @param reservation The id of the reservation.
+     * @return If this client made this reservation.
+     */
+    public boolean isReservationFromThisUser(String username,int reservation){
+        readWriteLock.writeLock().lock();
+        try {
+            List<Integer> l = clients.get(username).getReservations();
+            return l.contains(reservation);
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * Gets the list of reservation of this user.
+     * @param username The username of the user.
+     * @return List of reservation of this user.
+     */
+    public List<Integer> getsReservation(String username){
+        readWriteLock.writeLock().lock();
+        try {
+            return clients.get(username).getReservations();
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
         }
     }
 

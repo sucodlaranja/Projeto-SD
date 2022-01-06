@@ -10,37 +10,67 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
+import static Server.ServerInfo.FlightInfo.Flight.DAYS_AVAILABLE;
+
 /// This class will manage all the Flight in the system.
 public class FlightFacade implements IFlightFacade {
 
     private static final int MAX_DEPTH_SEARCH = 3;
 
     /// This Map contains all the flights of the system.
-    private Map<Integer, Flight> flights;
+    private final Map<Integer, Flight> flights;
     /// Determines the new flight's id.
     private int nextFlightId;
     /// This Map contains all the reservations of the system.
-    private Map<Integer, FlightReservation> flightReservations;
+    private final Map<Integer, FlightReservation> flightReservations;
     /// Determines the new reservation's id.
     private int nextReservationId;
     /// Date when the system flight's occupation was last updated.
     private LocalDate lastUpdated;
+    /// If it is allowed to make reservations ona a given day.
+    private final List<Boolean> blockAction;
 
     /// Lock that will allow multiple threads to access this class.
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     /// Constructor that will read a file containing /ref Flights.
     public FlightFacade(){
-        flights = DataWriteRead.getInstanceHashMap("flights");
         lastUpdated = DataWriteRead.getInstanceOtherInformation("flights");
+        blockAction = DataWriteRead.getInstanceArrayList("blockAction", DAYS_AVAILABLE);
+        flights = DataWriteRead.getInstanceHashMap("flights");
         flightReservations = DataWriteRead.getInstanceHashMap("flightReservations");
+
 
         nextFlightId = DataWriteRead.maxId(flights.keySet());
         nextReservationId = DataWriteRead.maxId(flightReservations.keySet());
     }
 
+    /**
+     * This method will allow this system to know that no more operation is allowed today \n
+     * @return If there was change in the boolean or not.
+     */
+    public boolean endDay(LocalDate day) throws WrongDate{
+        updateFlightsOccupation();
+        readWriteLock.writeLock().lock();
+        try {
+            int diff = (int) lastUpdated.until(day,ChronoUnit.DAYS);
+            if (diff < 0 || diff >= DAYS_AVAILABLE)
+                throw new WrongDate("Date needs to be between "
+                        + lastUpdated + " and " + lastUpdated.plusDays(DAYS_AVAILABLE) + "." );
+            if (blockAction.get(diff)) {
+                blockAction.set(diff,false);
+                return true;
+            }
+            else return false;
+        }
+        finally {
+            readWriteLock.writeLock().unlock();
+        }
+    }
+
     /// Adds a flight to the flight collection.
     public void addFlight(String startLocation, String destinyLocation, int maxOccupation){
+        updateFlightsOccupation();
         readWriteLock.writeLock().lock();
         try {
             flights.put(nextFlightId,new Flight(nextFlightId,startLocation,destinyLocation,maxOccupation));
@@ -59,14 +89,24 @@ public class FlightFacade implements IFlightFacade {
      * @return The id of the reservation.
      * @throws FlightNotAvailable If there was some problem in the reservation.
      */
-    public int addReservation(List<String> destinations,LocalDate startDate,LocalDate endDate) throws FlightNotAvailable {
+    public int addReservation(List<String> destinations,LocalDate startDate,LocalDate endDate) throws FlightNotAvailable, WrongDate {
+        updateFlightsOccupation();
         List<Integer> flightsIds = getAllIdsFlights(destinations);
+        if (startDate.compareTo(endDate) > 0 )
+            throw new WrongDate("Dates in the wrong way !\n");
 
-        while (endDate.compareTo(startDate) >= 0 && !reserveIfAvailable(flightsIds,startDate))
+        while (endDate.compareTo(startDate) >= 0){
+            int diff = (int) lastUpdated.until(startDate,ChronoUnit.DAYS);
+            if (diff < 0 || diff >= DAYS_AVAILABLE)
+                throw new WrongDate("Date needs to be between "
+                        + lastUpdated + " and " + lastUpdated.plusDays(DAYS_AVAILABLE) + "." );
+            if (blockAction.get(diff) && reserveIfAvailable(flightsIds,startDate)) break;
             startDate = startDate.plusDays(1);
+        }
 
-        if (endDate.compareTo(startDate) >= 0)
-            throw new FlightNotAvailable("There isn´t the seats available for this course!\n");
+
+        if (startDate.compareTo(endDate) > 0)
+            throw new FlightNotAvailable("There aren't seats available for this course!\n");
 
         readWriteLock.writeLock().lock();
         try {
@@ -83,13 +123,19 @@ public class FlightFacade implements IFlightFacade {
      * @param idReservation Id of the Reservation.
      * @throws ReservationNotAvailable If the reservation could not be removed.
      */
-    public void removeReservation(int idReservation) throws ReservationNotAvailable {
+    public void removeReservation(int idReservation) throws ReservationNotAvailable, WrongDate {
+        updateFlightsOccupation();
         readWriteLock.writeLock().lock();
         try {
             FlightReservation flightRes = flightReservations.remove(idReservation);
             if (flightRes == null) throw new  ReservationNotAvailable("Reservation does not exist.\n");
             else{
                 int days = (int) lastUpdated.until(flightRes.dateOfReservation(),ChronoUnit.DAYS);
+                if (days < 0 || days >= DAYS_AVAILABLE)
+                    throw new WrongDate("Reservation date needs to be between "
+                            + lastUpdated + " and " + lastUpdated.plusDays(DAYS_AVAILABLE) + "." );
+                if (!blockAction.get(days))
+                    throw new WrongDate("Reservations and cancellations are cancelled on this day.\n");
                 for(int flightsIds : flightRes.idsFlight()){
                     if (!flights.get(flightsIds).cancelReservation(days))
                         throw new  ReservationNotAvailable("Data does not match! Something is wrong.\n");
@@ -108,6 +154,7 @@ public class FlightFacade implements IFlightFacade {
      * @return all the possible paths.
      */
     public List<List<String>> findAllPossiblePaths(String startLocation, String destinyLocation){
+        updateFlightsOccupation();
         List<List<String>> allPaths = new ArrayList<>();
 
         List<List<String>> expandMatrix = new ArrayList<>();
@@ -131,6 +178,45 @@ public class FlightFacade implements IFlightFacade {
         return allPaths;
     }
 
+    /**
+     * Gets a list of all the possible flights.
+     * @return A list of all the flights.
+     */
+    public List<String> getAllFlights(){
+        updateFlightsOccupation();
+        readWriteLock.readLock().lock();
+        try {
+            return flights.values().stream().map(Flight::toString).collect(Collectors.toList());
+        }
+        finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    public String reservationToString(int reservation){
+        FlightReservation flightReservation = flightReservations.get(reservation);
+        StringBuilder sb = new StringBuilder();
+        sb.append("Id reservation: ").append(flightReservation.idReservation()).append(" ");
+        sb.append("Date: ").append(flightReservation.dateOfReservation()).append(" :\n");
+        for(int id : flightReservation.idsFlight())
+            sb.append("     ").append(flights.get(id).toString()).append("\n");
+        return sb.toString();
+    }
+
+    /// Saves all the info on a file
+    public void saveInfo(){
+        updateFlightsOccupation();
+        readWriteLock.readLock().lock();
+        try {
+            DataWriteRead.saveInstanceOtherInformation(flights,lastUpdated,"flights");
+            DataWriteRead.saveInstanceHashMap(flightReservations,"flightReservations");
+            DataWriteRead.saveInstanceArrayList(blockAction,"blockAction");
+        }
+        finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
     /// Private methods
 
     /**
@@ -142,18 +228,19 @@ public class FlightFacade implements IFlightFacade {
     private boolean reserveIfAvailable(List<Integer> flightsIds,LocalDate localDate){
         updateFlightsOccupation();
         int days = (int) lastUpdated.until(localDate,ChronoUnit.DAYS);
+        if (!blockAction.get(days)) return false;
+        System.out.println("HHHHHHHHHHHHHHHHHHHHHHH");
         List<Integer> remove = new ArrayList<>();
         readWriteLock.writeLock().lock();
         try {
             for(Integer idAdd :flightsIds){
                 if(flights.get(idAdd).addReservation(days)) remove.add(idAdd);
                 else{
-                    for (Integer idRemove : remove){
+                    System.out.println(idAdd + " " + days);
+                    for (Integer idRemove : remove)
                         flights.get(idRemove).cancelReservation(days);
-                    }
                     return false;
                 }
-
             }
             return true;
         }
@@ -170,9 +257,10 @@ public class FlightFacade implements IFlightFacade {
      */
     private List<Integer> getAllIdsFlights(List<String> destinations) throws FlightNotAvailable{
         if (destinations.size() < 1) throw new FlightNotAvailable("Need more destinations!\n");
+        List<String> lista = new  ArrayList<>(destinations);
         List<Integer> result = new ArrayList<>();
-        String previous = destinations.get(0);
-        for (String destination : destinations){
+        String previous = lista.remove(0);
+        for (String destination : lista){
             int id = getIdFlights(previous,destination);
             if (id == -1) throw new FlightNotAvailable("No flight from " + previous + " to " + destination + ".\n");
             result.add(id);
@@ -250,6 +338,10 @@ public class FlightFacade implements IFlightFacade {
         try {
             LocalDate now = LocalDateTime.now().toLocalDate();
             int days = (int) lastUpdated.until(now, ChronoUnit.DAYS);
+            for (int i = 0; i < days; i++){
+                blockAction.remove(0);
+                blockAction.add(true);
+            }
             flights.values().forEach(flight -> flight.updateOccupation(days));
             lastUpdated = now;
         }

@@ -70,6 +70,43 @@ public class DataWriteRead {
         }
     }
 
+    ///Reads a \ref ArrayList from a given file.
+    public static List getInstanceArrayList(String filename, int days) {
+
+        List arrayList = null;
+        try {
+            ObjectInputStream is =
+                    new ObjectInputStream(new FileInputStream(filename));
+            arrayList = (ArrayList) is.readObject();
+        }
+        catch (IOException ex) {
+            System.out.println("O sistema nao conseguiu carregar o ficheiro: " + filename + ".");
+        }
+        catch (ClassNotFoundException ignored){ }
+
+
+        if (arrayList == null) {
+            List<Boolean> n = new ArrayList<>();
+            for(int i = 0; i < days; i++){
+                n.add(true);
+            }
+            return n;
+        }
+        else return new ArrayList(arrayList);
+    }
+
+    /// Writes a \ref HashSet on a given file.
+    public static void saveInstanceArrayList(List list,String filename) {
+        try {
+            ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
+            os.writeObject(list);
+            os.flush();
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     ///Reads information from a given file.
     public static LocalDate getInstanceOtherInformation(String filename) {
 
@@ -89,10 +126,10 @@ public class DataWriteRead {
     }
 
     /// Writes information on a given file.
-    public static void saveInstanceOtherInformation(Map map, LocalDate localDate, String filename) {
+    public static void saveInstanceOtherInformation(Map map, Object o, String filename) {
         try {
             ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
-            os.writeObject(localDate);
+            os.writeObject(o);
             os.writeObject(map);
             os.flush();
             os.close();
