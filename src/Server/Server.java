@@ -8,13 +8,18 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import Server.ServerInfo.ClientInfo.ClientFacade;
 import Server.ServerInfo.ClientInfo.IClientFacade;
 import Server.ServerInfo.ClientInfo.RepeatedKey;
-import Server.ServerInfo.FlightInfo.*;
+import Server.ServerInfo.FlightInfo.FlightFacade;
+import Server.ServerInfo.FlightInfo.FlightNotAvailable;
+import Server.ServerInfo.FlightInfo.IFlightFacade;
+import Server.ServerInfo.FlightInfo.ReservationNotAvailable;
+import Server.ServerInfo.FlightInfo.WrongDate;
 
 /// This is the server of this project, and will handle all requests.
 public class Server {
@@ -97,12 +102,12 @@ public class Server {
                             }
                         }
                         case 2 -> { // verif flights
-                            if (in.readBoolean()){
+                            String fromV = in.readUTF();
+                            if (fromV.equals("all")){
                                 out.writeUTF("1--All the flights available:\n"
                                         + String.join("\n",flights.getAllFlights()));
                             }
                             else{
-                                String fromV = in.readUTF();
                                 String toV = in.readUTF();
                                 String result = pathsToString(flights.findAllPossiblePaths(fromV,toV));
                                 out.writeUTF("1--" + result);

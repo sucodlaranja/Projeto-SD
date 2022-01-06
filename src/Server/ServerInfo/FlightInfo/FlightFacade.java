@@ -1,16 +1,19 @@
 package Server.ServerInfo.FlightInfo;
 
-import Server.ServerInfo.DataWriteRead;
+import static Server.ServerInfo.FlightInfo.Flight.DAYS_AVAILABLE;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-import static Server.ServerInfo.FlightInfo.Flight.DAYS_AVAILABLE;
+import Server.ServerInfo.DataWriteRead;
 
 /// This class will manage all the Flight in the system.
 public class FlightFacade implements IFlightFacade {
@@ -196,8 +199,8 @@ public class FlightFacade implements IFlightFacade {
     public String reservationToString(int reservation){
         FlightReservation flightReservation = flightReservations.get(reservation);
         StringBuilder sb = new StringBuilder();
-        sb.append("Id reservation: ").append(flightReservation.idReservation()).append(" ");
-        sb.append("Date: ").append(flightReservation.dateOfReservation()).append(" :\n");
+        sb.append("reservation number: ").append(flightReservation.idReservation()).append(" ");
+        sb.append("Date ").append(flightReservation.dateOfReservation()).append(" :\n");
         for(int id : flightReservation.idsFlight())
             sb.append("     ").append(flights.get(id).toString()).append("\n");
         return sb.toString();
