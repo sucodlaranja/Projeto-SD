@@ -64,7 +64,7 @@ public class Controller {
                     "Check available flights",
                     "Make a reservation",
                     "Cancel a Reservation",
-                    "Check Reservations"
+                    "Check Responses"
 
             };
         }
@@ -113,10 +113,11 @@ public class Controller {
     private void signUp() {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password: ");
-        this.clientWorker.startRequestWorker(); // <- Start worker - manage client interactions with the server using
-                                                // RequestWorker.
+
         ReaderWriter.printString("loading...");
         clientWorker.addRequest("signUp--" + username + "--" + password);
+        this.clientWorker.startRequestWorker(); // <- Start worker - manage client interactions with the server using
+        // RequestWorker.
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
 
@@ -132,7 +133,7 @@ public class Controller {
         String from = ReaderWriter.getString("From:");
         String to = ReaderWriter.getString("To: ");
         clientWorker.addRequest("verif--" + from + "--" + to);
-        } else {clientWorker.addRequest("verif--all--all");}
+        } else {clientWorker.addRequest("verif--all");}
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
         ReaderWriter.pressEnterToContinue();

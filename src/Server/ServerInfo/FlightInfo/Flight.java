@@ -121,7 +121,6 @@ class Flight implements Serializable {
         readWriteLock.writeLock().lock();
         try {
             int occ = occupation.get(day);
-            System.out.println(occ);
             if (occ > 0) {
                 occupation.set(day,occ - 1);
                 return true;

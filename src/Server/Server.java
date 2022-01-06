@@ -71,7 +71,7 @@ public class Server {
 
         @Override
         public void run() {
-            boolean close = false;
+            boolean close = false, save = false;
 
             while (!close) {
                 try {
@@ -96,6 +96,7 @@ public class Server {
                                 clients.addClient(username,password,false);
                                 out.writeUTF("1--SignUp successful!");
                                 this.username = username;
+                                save = true;
                             } catch (RepeatedKey e) {
                                 out.writeUTF("-1--" + e.getMessage());
                                 close = true;
@@ -109,8 +110,11 @@ public class Server {
                             }
                             else{
                                 String toV = in.readUTF();
-                                String result = pathsToString(flights.findAllPossiblePaths(fromV,toV));
-                                out.writeUTF("1--" + result);
+                                try {
+                                    out.writeUTF("1--" + pathsToString(flights.findAllPossiblePaths(fromV,toV)));
+                                } catch (FlightNotAvailable e) {
+                                    out.writeUTF("-1--" + e.getMessage());
+                                }
                             }
                         }
                         case 3 -> { // add reservation
@@ -121,6 +125,7 @@ public class Server {
                                 int res = flights.addReservation(Arrays.asList(flightsList.split(";")),
                                         LocalDate.parse(date1), LocalDate.parse(date2));
                                 clients.addReservations(username,res);
+                                save = true;
                                 out.writeUTF("3--Reservation " + res +" added with success.");
                             } catch (FlightNotAvailable | WrongDate e){
                                 out.writeUTF("3--" + e.getMessage());
@@ -133,6 +138,7 @@ public class Server {
                                     flights.removeReservation(flightIdR);
                                     clients.removeReservations(username,flightIdR);
                                     out.writeUTF("3--Reservation removed with success.");
+                                    save = true;
                                 } catch (ReservationNotAvailable | WrongDate e) {
                                     out.writeUTF("-1--" + e.getMessage());
                                 }
@@ -157,6 +163,7 @@ public class Server {
                                     out.writeUTF("1--Day closed.No more reservations or cancellations allowed.");
                                 else
                                     out.writeUTF("-1--Reservations and cancellations today were already closed");
+                                save = true;
                             } catch (WrongDate e) {
                                 out.writeUTF("3--" + e.getMessage());
                             }
@@ -167,6 +174,7 @@ public class Server {
                             int capacity = in.readInt();
                             flights.addFlight(fromA,toA,capacity);
                             out.writeUTF("1--Flight added with success!");
+                            save = true;
                         }
                         case 8 -> { // add admin
                             String username = in.readUTF();
@@ -174,6 +182,7 @@ public class Server {
                             try {
                                 clients.addClient(username,password,true);
                                 out.writeUTF("1--New Admin " + username + "added with success!");
+                                save = true;
                             } catch (RepeatedKey e) {
                                 out.writeUTF("-1--" + e.getMessage());
                             }
@@ -184,12 +193,15 @@ public class Server {
                     }
                     out.flush();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    e.printStackTrace(); // TODO
+                    close = true;
                 }
             }
-
-
-            System.out.println("ClientHandler ends\n "); // TODO : DEBUG!
+            if (save) {
+                clients.saveClients();
+                flights.saveInfo();
+            }
+            System.out.println("ClientHandler terminates\n "); // TODO : DEBUG!
         }
 
          private static String pathsToString(List<List<String>> allPaths){
