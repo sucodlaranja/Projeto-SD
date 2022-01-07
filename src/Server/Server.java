@@ -1,5 +1,10 @@
 package Server;
 
+import Server.ServerInfo.ClientInfo.ClientFacade;
+import Server.ServerInfo.ClientInfo.IClientFacade;
+import Server.ServerInfo.ClientInfo.RepeatedKey;
+import Server.ServerInfo.FlightInfo.*;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -12,14 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import Server.ServerInfo.ClientInfo.ClientFacade;
-import Server.ServerInfo.ClientInfo.IClientFacade;
-import Server.ServerInfo.ClientInfo.RepeatedKey;
-import Server.ServerInfo.FlightInfo.FlightFacade;
-import Server.ServerInfo.FlightInfo.FlightNotAvailable;
-import Server.ServerInfo.FlightInfo.IFlightFacade;
-import Server.ServerInfo.FlightInfo.ReservationNotAvailable;
-import Server.ServerInfo.FlightInfo.WrongDate;
 
 /// This is the server of this project, and will handle all requests.
 public class Server {
