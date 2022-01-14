@@ -132,10 +132,11 @@ public class Server {
                             int flightIdR = in.readInt();
                             if (clients.isReservationFromThisUser(username,flightIdR)){
                                 try {
-                                    flights.removeReservation(flightIdR);
-                                    clients.removeReservations(username,flightIdR);
-                                    out.writeUTF("3--Reservation removed with success.");
-                                    save = true;
+                                    if (flights.removeReservation(flightIdR)){
+                                        clients.removeReservations(username,flightIdR);
+                                        out.writeUTF("3--Reservation removed with success.");
+                                        save = true;
+                                    }
                                 } catch (ReservationNotAvailable | WrongDate e) {
                                     out.writeUTF("-1--" + e.getMessage());
                                 }

@@ -32,7 +32,7 @@ public interface IFlightFacade {
      * @param idReservation Id of the Reservation.
      * @throws ReservationNotAvailable If the reservation could not be removed.
      */
-    void removeReservation(int idReservation) throws ReservationNotAvailable, WrongDate;
+    boolean removeReservation(int idReservation) throws ReservationNotAvailable, WrongDate;
 
     /**
      * This method will allow this system to know that no more operation is allowed today \n

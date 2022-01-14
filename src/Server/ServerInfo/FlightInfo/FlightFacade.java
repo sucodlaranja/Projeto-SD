@@ -128,11 +128,11 @@ public class FlightFacade implements IFlightFacade {
      * @param idReservation Id of the Reservation.
      * @throws ReservationNotAvailable If the reservation could not be removed.
      */
-    public void removeReservation(int idReservation) throws ReservationNotAvailable, WrongDate {
+    public boolean removeReservation(int idReservation) throws ReservationNotAvailable, WrongDate {
         updateFlightsOccupation();
         readWriteLock.writeLock().lock();
         try {
-            FlightReservation flightRes = flightReservations.remove(idReservation);
+            FlightReservation flightRes = flightReservations.get(idReservation);
             if (flightRes == null) throw new  ReservationNotAvailable("Reservation does not exist.\n");
             else{
                 int days = (int) lastUpdated.until(flightRes.dateOfReservation(),ChronoUnit.DAYS);
@@ -145,11 +145,13 @@ public class FlightFacade implements IFlightFacade {
                     if (!flights.get(flightsIds).cancelReservation(days))
                         throw new  ReservationNotAvailable("Data does not match! Something is wrong.\n");
                 }
+                flightReservations.remove(idReservation);
             }
         }
         finally {
             readWriteLock.writeLock().unlock();
         }
+        return true;
     }
 
     /**
@@ -198,6 +200,7 @@ public class FlightFacade implements IFlightFacade {
 
     public String reservationToString(int reservation){
         FlightReservation flightReservation = flightReservations.get(reservation);
+        if (flightReservation == null) return "";
         StringBuilder sb = new StringBuilder();
         sb.append("reservation number: ").append(flightReservation.idReservation()).append(" ");
         sb.append("Date ").append(flightReservation.dateOfReservation()).append(" :\n");
