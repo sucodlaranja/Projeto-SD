@@ -38,9 +38,9 @@ public class FlightFacade implements IFlightFacade {
 
     /// Constructor that will read a file containing /ref Flights.
     public FlightFacade(){
-        lastUpdated = DataWriteRead.getInstanceOtherInformation("flights");
-        blockAction = DataWriteRead.getInstanceArrayList("blockAction", DAYS_AVAILABLE);
+        lastUpdated = DataWriteRead.getInstanceLocalDate("lastUpdated");
         flights = DataWriteRead.getInstanceHashMap("flights");
+        blockAction = DataWriteRead.getInstanceArrayList("blockAction", DAYS_AVAILABLE);
         flightReservations = DataWriteRead.getInstanceHashMap("flightReservations");
 
 
@@ -94,7 +94,9 @@ public class FlightFacade implements IFlightFacade {
      */
     public int addReservation(List<String> destinations,LocalDate startDate,LocalDate endDate) throws FlightNotAvailable, WrongDate {
         updateFlightsOccupation();
+        destinations = generatePaths(destinations);
         List<Integer> flightsIds = getAllIdsFlights(destinations);
+
         if (startDate.compareTo(endDate) > 0 )
             throw new WrongDate("Dates in the wrong way !\n");
 
@@ -156,7 +158,7 @@ public class FlightFacade implements IFlightFacade {
      * @param destinyLocation Location where the path will end.
      * @return all the possible paths.
      */
-    public List<List<String>> findAllPossiblePaths(String startLocation, String destinyLocation){
+    public List<List<String>> findAllPossiblePaths(String startLocation, String destinyLocation) throws FlightNotAvailable{
         updateFlightsOccupation();
         List<List<String>> allPaths = new ArrayList<>();
 
@@ -173,11 +175,9 @@ public class FlightFacade implements IFlightFacade {
             allPaths.addAll(solutions);
         }
 
-        if (allPaths.isEmpty()){
-            List<String> l = new ArrayList<>();
-            l.add("There isn't any flights available!\n");
-            allPaths.add(l);
-        }
+        if (allPaths.isEmpty())
+            throw new  FlightNotAvailable("There is no flight(s) available from "
+            + startLocation + " to " + destinyLocation);
         return allPaths;
     }
 
@@ -211,7 +211,8 @@ public class FlightFacade implements IFlightFacade {
         updateFlightsOccupation();
         readWriteLock.readLock().lock();
         try {
-            DataWriteRead.saveInstanceOtherInformation(flights,lastUpdated,"flights");
+            DataWriteRead.saveInstanceLocalDate(lastUpdated,"lastUpdated");
+            DataWriteRead.saveInstanceHashMap(flights,"flights");
             DataWriteRead.saveInstanceHashMap(flightReservations,"flightReservations");
             DataWriteRead.saveInstanceArrayList(blockAction,"blockAction");
         }
@@ -232,14 +233,12 @@ public class FlightFacade implements IFlightFacade {
         updateFlightsOccupation();
         int days = (int) lastUpdated.until(localDate,ChronoUnit.DAYS);
         if (!blockAction.get(days)) return false;
-        System.out.println("HHHHHHHHHHHHHHHHHHHHHHH");
         List<Integer> remove = new ArrayList<>();
         readWriteLock.writeLock().lock();
         try {
             for(Integer idAdd :flightsIds){
                 if(flights.get(idAdd).addReservation(days)) remove.add(idAdd);
                 else{
-                    System.out.println(idAdd + " " + days);
                     for (Integer idRemove : remove)
                         flights.get(idRemove).cancelReservation(days);
                     return false;
@@ -351,6 +350,24 @@ public class FlightFacade implements IFlightFacade {
         finally {
             readWriteLock.readLock().unlock();
         }
+    }
+
+    private List<String> generatePaths(List<String> destinations) throws FlightNotAvailable {
+        if (destinations.size() < 1) throw new FlightNotAvailable("Need more destinations!\n");
+        List<String> lista = new  ArrayList<>();
+        List<String> temp = new  ArrayList<>(destinations);
+
+
+        String previous = temp.remove(0);
+        lista.add(previous);
+        for (String destination : temp){
+            List<List<String>> mat = findAllPossiblePaths(previous,destination);
+            List<String> c = mat.get(0);
+            c.remove(0);
+            lista.addAll(c);
+            previous = destination;
+        }
+        return lista;
     }
 
 

@@ -39,37 +39,6 @@ public class DataWriteRead {
         }
     }
 
-    ///Reads a \ref HashSet from a given file.
-    public static Set getInstanceHashSet(String filename) {
-
-        Set hashSet = null;
-        try {
-            ObjectInputStream is =
-                    new ObjectInputStream(new FileInputStream(filename));
-            hashSet = (HashSet) is.readObject();
-        }
-        catch (IOException ex) {
-            System.out.println("O sistema nao conseguiu carregar o ficheiro: " + filename + ".");
-        }
-        catch (ClassNotFoundException ignored){ }
-
-
-        if (hashSet == null) return new HashSet<>();
-        else return new HashSet(hashSet);
-    }
-
-    /// Writes a \ref HashSet on a given file.
-    public static void saveInstanceHashSet(Set set,String filename) {
-        try {
-            ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
-            os.writeObject(set);
-            os.flush();
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     ///Reads a \ref ArrayList from a given file.
     public static List getInstanceArrayList(String filename, int days) {
 
@@ -108,7 +77,7 @@ public class DataWriteRead {
     }
 
     ///Reads information from a given file.
-    public static LocalDate getInstanceOtherInformation(String filename) {
+    public static LocalDate getInstanceLocalDate(String filename) {
 
         LocalDate localDate = null;
         try {
@@ -126,11 +95,10 @@ public class DataWriteRead {
     }
 
     /// Writes information on a given file.
-    public static void saveInstanceOtherInformation(Map map, Object o, String filename) {
+    public static void saveInstanceLocalDate(LocalDate localDate, String filename) {
         try {
             ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(filename));
-            os.writeObject(o);
-            os.writeObject(map);
+            os.writeObject(localDate);
             os.flush();
             os.close();
         } catch (IOException e) {

@@ -15,7 +15,7 @@ public interface IFlightFacade {
      * @param destinyLocation Location where the path will end.
      * @return all the possible paths.
      */
-    List<List<String>> findAllPossiblePaths(String startLocation, String destinyLocation);
+    List<List<String>> findAllPossiblePaths(String startLocation, String destinyLocation) throws FlightNotAvailable;
 
     /**
      * Adds a reservation to the system, if there is space in the interval of time.

@@ -283,7 +283,7 @@ public class ClientWorker {
                 case "verif":
                     out.writeInt(2);
                     out.writeUTF(spliter[1]); // from
-                    out.writeUTF(spliter[2]); // to
+                    if (!spliter[1].equals("all")) out.writeUTF(spliter[2]); // to
                     break;
                 case "AddR":
                     out.writeInt(3);
@@ -293,7 +293,7 @@ public class ClientWorker {
                     break;
                 case "RemR":
                     out.writeInt(4);
-                    out.writeUTF(spliter[1]); // Reservation number
+                    out.writeInt(Integer.parseInt( spliter[1])); // Reservation number
                     break;
                 case "check":
                     out.writeInt(5); // Checks all reservations
