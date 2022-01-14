@@ -113,7 +113,6 @@ public class Controller {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password: ");
 
-        ReaderWriter.printString("loading...");
         clientWorker.addRequest("signUp--" + username + "--" + password);
         this.clientWorker.startRequestWorker(); // <- Start worker - manage client interactions with the server using
         // RequestWorker.
