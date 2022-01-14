@@ -4,8 +4,8 @@ import Client.Controller.Controller;
 
 public class Main {
     public static void main(String[] args) {
-        Controller teste = new Controller();
-        teste.run();
+        Controller controller = new Controller();
+        controller.run();
 
     }
 }

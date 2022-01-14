@@ -100,7 +100,6 @@ public class Controller {
         clientWorker.addRequest("signIn--" + username + "--" + password);
 
         this.clientWorker.startRequestWorker(); /// Starts worker
-        ReaderWriter.printString("loading...");
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());
 
@@ -113,9 +112,7 @@ public class Controller {
     private void signUp() {
         String username = ReaderWriter.getString("Please insert your username: ");
         String password = ReaderWriter.getString("Please insert your password: ");
-        this.clientWorker.startRequestWorker(); // <- Start worker - manage client interactions with the server using
-                                                // RequestWorker.
-        ReaderWriter.printString("loading...");
+        this.clientWorker.startRequestWorker(); // <- Start worker - manage client interactions with the server using                                           
         clientWorker.addRequest("signUp--" + username + "--" + password);
         clientWorker.waitMain();
         ReaderWriter.printString(clientWorker.getResponse());

@@ -183,7 +183,6 @@ public class ClientWorker {
                   
                     sleepmain.await();
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
@@ -200,7 +199,7 @@ public class ClientWorker {
                 try {
                     sleepRequest.await();
                 } catch (InterruptedException e) {
-                    // TODO Auto-generated catch block
+
                     e.printStackTrace();
                 }
             }
@@ -247,9 +246,7 @@ public class ClientWorker {
 
                     }
                 }
-            } catch (IOException e) {
-                e.printStackTrace(); // TODO: e so pra testar
-            }
+            } catch (IOException e) {}
         }
 
         // Closes socket
@@ -259,7 +256,7 @@ public class ClientWorker {
                 out.close();
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace(); // TODO: e so pra testar
+                e.printStackTrace();
             }
         }
 
