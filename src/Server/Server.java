@@ -46,7 +46,6 @@ public class Server {
         while (!serverSocket.isClosed()){
             try {
                 Socket newRequestSocket = serverSocket.accept();
-                System.out.println("New Client!"); // TODO : DEBUG!
                 Thread t = new Thread(new ClientHandler(newRequestSocket));
                 t.start();
             } catch (IOException e) {
@@ -191,7 +190,6 @@ public class Server {
                     }
                     out.flush();
                 } catch (IOException e) {
-                    e.printStackTrace(); // TODO
                     close = true;
                 }
             }
@@ -199,7 +197,6 @@ public class Server {
                 clients.saveClients();
                 flights.saveInfo();
             }
-            System.out.println("ClientHandler terminates\n "); // TODO : DEBUG!
         }
 
          private static String pathsToString(List<List<String>> allPaths){
